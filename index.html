@@ -3063,7 +3063,7 @@ function renderPool() {
       ${inDeck > 0 ? `<span class="deck-count">${inDeck}</span>` : ''}
     `;
 
-    // Bouton info -> modal
+    // Bouton info "ⓘ" -> ouvre le modal détaillé
     const infoBtn = div.querySelector('.tile-info-btn');
     if (infoBtn) {
       infoBtn.onclick = e => {
@@ -3073,29 +3073,17 @@ function renderPool() {
       };
     }
 
-    // Tap simple -> ajouter au deck
-    div.onclick = e => {
-      e.stopPropagation();
-      addToDeck(card.id);
-    };
-
-    // Long press (mobile) ou clic droit (desktop) -> retirer 1 copie de la pool
+    // Long press mobile (= equivalent du clic droit desktop) : retire 1 copie du DECK
+    // La pool reste intouchee : c'est ta main de cartes ouvertes, elle ne change jamais
     let pressTimer = null;
     let longPressFired = false;
 
-    const startPress = (e) => {
+    const startPress = () => {
       longPressFired = false;
       pressTimer = setTimeout(() => {
         longPressFired = true;
-        // Vibration tactile (mobile, si supportee)
         if (navigator.vibrate) navigator.vibrate(40);
-        // Petit feedback visuel : flash rouge
-        div.style.transition = 'transform 0.15s, box-shadow 0.15s';
-        div.style.transform = 'scale(0.92)';
-        div.style.boxShadow = '0 0 0 3px var(--danger), 0 0 18px rgba(239, 83, 80, 0.6)';
-        setTimeout(() => {
-          removeFromPool(card.id);
-        }, 200);
+        removeFromDeck(card.id);
       }, 500);
     };
     const cancelPress = () => {
@@ -3106,12 +3094,8 @@ function renderPool() {
     div.addEventListener('touchend', cancelPress);
     div.addEventListener('touchmove', cancelPress);
     div.addEventListener('touchcancel', cancelPress);
-    div.addEventListener('mousedown', startPress);
-    div.addEventListener('mouseup', cancelPress);
-    div.addEventListener('mouseleave', cancelPress);
 
-    // Empecher le clic d'ajouter au deck si long press a deja agi
-    const originalClick = div.onclick;
+    // Tap simple : ajoute au deck (sauf si long press a deja agi)
     div.onclick = e => {
       if (longPressFired) {
         longPressFired = false;
@@ -3123,11 +3107,12 @@ function renderPool() {
       addToDeck(card.id);
     };
 
-    // Clic droit desktop -> retirer 1 (sans confirmation)
+    // Clic droit desktop : retire 1 copie du DECK (sans confirmation)
+    // Si la carte n'est pas dans le deck, rien ne se passe
     div.oncontextmenu = e => {
       e.preventDefault();
       e.stopPropagation();
-      removeFromPool(card.id);
+      removeFromDeck(card.id);
     };
 
     grid.appendChild(div);
@@ -3201,23 +3186,23 @@ function removeFromDeck(id, all = false) {
 
 // Retire 1 copie de la carte de la pool (et du deck si presente, pour rester coherent)
 function removeFromPool(id) {
-  // Retirer 1 instance de la pool
+  const inDeckQty = deckCount(id);
+  const inPoolQty = poolCount(id);
+
+  // Si la carte est utilisee dans le deck et qu'on retirerait en dessous de la qty utilisee : bloquer
+  // Tu dois d'abord retirer la carte du deck avant de pouvoir la retirer de la pool
+  if (inDeckQty >= inPoolQty) {
+    const card = CARDS.find(c => c.id === id);
+    const name = card ? card.name : 'cette carte';
+    alert(`Impossible de retirer "${name}" de la pool : elle est utilisée dans ton deck (×${inDeckQty}).\n\nRetire-la d'abord du deck.`);
+    return;
+  }
+
+  // OK : on peut retirer 1 instance de la pool sans casser le deck
   const poolIdx = pool.findIndex(c => c.id === id);
   if (poolIdx < 0) return;
   pool.splice(poolIdx, 1);
 
-  // Si la carte est dans le deck et qu'on n'a plus assez de copies dans la pool, ajuster le deck
-  const remaining = poolCount(id);
-  const inDeckQty = deckCount(id);
-  if (inDeckQty > remaining) {
-    const d = deck.find(x => x.id === id);
-    if (d) {
-      d.qty = remaining;
-      if (d.qty <= 0) {
-        deck = deck.filter(x => x.id !== id);
-      }
-    }
-  }
   renderPool();
   renderDeck();
 }
