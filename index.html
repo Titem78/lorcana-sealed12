@@ -445,6 +445,12 @@ header .signature {
   100% { transform: translate(-50%, -50%) scale(25); opacity: 0; }
 }
 
+@keyframes scanCountPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); background: rgba(212,145,90,0.3) !important; }
+  100% { transform: scale(1); }
+}
+
 /* Animation shake/glow quand on clique sur un booster */
 @keyframes boosterShake {
   0% { transform: translateY(0) scale(1) rotate(0deg); filter: brightness(1); }
@@ -1131,6 +1137,43 @@ header .signature {
   filter: brightness(0.7);
 }
 
+/* Bouton info "i" sur chaque tile - acces au modal sans long press */
+.card-tile .tile-info-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(212, 145, 90, 0.5);
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s, transform 0.15s;
+}
+.card-tile .tile-info-btn:hover,
+.card-tile .tile-info-btn:active {
+  background: var(--accent);
+  color: var(--bg);
+  transform: scale(1.1);
+}
+/* Si la tile est foil, decaler le bouton info pour ne pas chevaucher le badge FOIL */
+.card-tile.is-foil .tile-info-btn {
+  top: 4px;
+  right: auto;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.85);
+}
+
 .card-tile img {
   width: 100%;
   height: 100%;
@@ -1617,7 +1660,7 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 
 <button class="btn" onclick="startSealed()">Ouvrir mes boosters</button>
 <button class="btn-ghost btn" onclick="openBoosterBox()" style="margin-left: 0.5rem;" title="Ouvre une display (24 packs) ou une case (96 packs) solo · pour voir des Enchanted plus souvent">📦 Open Box</button>
-<button class="btn-ghost btn" onclick="openScanner('pool')" style="margin-left: 0.5rem;">📷 Scanner ma pool reelle</button>
+<button class="btn-ghost btn" onclick="openScanner('pool')" style="margin-left: 0.5rem;" title="Scanne tes vraies cartes une par une avec la camera puis Auto-build">📷 Scanner ma pool reelle → Build</button>
 <button class="btn-ghost btn" onclick="showSeedHelp()" style="margin-left: 0.5rem;">Comment ca marche ?</button>
 </div>
 
@@ -1728,26 +1771,61 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 <div class="mono" style="font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent);">Scanner camera</div>
 <div id="scannerStatus" style="color:var(--ink-dim); font-size:0.85rem; margin-top:4px;">Initialisation...</div>
 </div>
+<div style="display:flex; gap:8px; align-items:center;">
+<div id="scanCounter" style="display:none; font-family:'JetBrains Mono', monospace; font-size:0.8rem; color:var(--accent); border:1px solid var(--accent); padding:6px 10px; border-radius:4px; background:rgba(212,145,90,0.1);">📚 <span id="scanCountValue">0</span> cartes</div>
 <button onclick="closeScanner()" style="background:none; border:1px solid var(--line); color:var(--ink); padding:6px 12px; border-radius:4px; cursor:pointer; font-size:0.85rem;">Fermer</button>
 </div>
-<div style="width:100%; max-width:600px; position:relative; background:#000; border-radius:6px; overflow:hidden; aspect-ratio: 16/9;">
+</div>
+<div style="width:100%; max-width:600px; position:relative; background:#000; border-radius:6px; overflow:hidden; aspect-ratio: 3/4;">
 <video id="scannerVideo" playsinline autoplay style="width:100%; height:100%; object-fit:cover;"></video>
-<div style="position:absolute; top:0; left:0; right:0; height:22%; border-bottom:2px dashed rgba(212,145,90,0.8); background:rgba(212,145,90,0.05); display:flex; align-items:center; justify-content:center; pointer-events:none;">
-<div style="color:rgba(255,255,255,0.9); font-family:'JetBrains Mono',monospace; font-size:0.7rem; letter-spacing:0.15em; text-shadow:0 0 4px rgba(0,0,0,0.8);">CADRE · NOM DE LA CARTE</div>
+<!-- Overlay sombre avec trou en forme de carte Lorcana au centre -->
+<div style="position:absolute; inset:0; pointer-events:none;">
+  <!-- 4 zones noires semi-opaques tout autour du cadre carte -->
+  <div style="position:absolute; top:0; left:0; right:0; height:8%; background:rgba(0,0,0,0.55);"></div>
+  <div style="position:absolute; bottom:0; left:0; right:0; height:8%; background:rgba(0,0,0,0.55);"></div>
+  <div style="position:absolute; top:8%; bottom:8%; left:0; width:18%; background:rgba(0,0,0,0.55);"></div>
+  <div style="position:absolute; top:8%; bottom:8%; right:0; width:18%; background:rgba(0,0,0,0.55);"></div>
+
+  <!-- Cadre de la carte (proportions Lorcana 63x88mm = ratio 0.716) -->
+  <!-- Centre: top 8%, bottom 8%, left 18%, right 18% -> hauteur 84%, largeur 64% -->
+  <div style="position:absolute; top:8%; bottom:8%; left:18%; right:18%; border:2px solid rgba(212,145,90,0.9); border-radius:6px; box-shadow:0 0 16px rgba(212,145,90,0.4); pointer-events:none;">
+    <!-- Coins decoratifs -->
+    <div style="position:absolute; top:-2px; left:-2px; width:18px; height:18px; border-top:3px solid var(--accent); border-left:3px solid var(--accent); border-radius:6px 0 0 0;"></div>
+    <div style="position:absolute; top:-2px; right:-2px; width:18px; height:18px; border-top:3px solid var(--accent); border-right:3px solid var(--accent); border-radius:0 6px 0 0;"></div>
+    <div style="position:absolute; bottom:-2px; left:-2px; width:18px; height:18px; border-bottom:3px solid var(--accent); border-left:3px solid var(--accent); border-radius:0 0 0 6px;"></div>
+    <div style="position:absolute; bottom:-2px; right:-2px; width:18px; height:18px; border-bottom:3px solid var(--accent); border-right:3px solid var(--accent); border-radius:0 0 6px 0;"></div>
+
+    <!-- Zone hachuree pour le NOM (en haut de la carte, comme sur Lorcana) -->
+    <div style="position:absolute; top:62%; left:0; right:0; height:10%; background:rgba(212,145,90,0.15); border-top:2px dashed rgba(212,145,90,0.9); border-bottom:2px dashed rgba(212,145,90,0.9); display:flex; align-items:center; justify-content:center;">
+      <div style="color:rgba(255,255,255,0.95); font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.15em; text-shadow:0 0 6px rgba(0,0,0,1); font-weight:600;">↑ NOM ICI ↑</div>
+    </div>
+  </div>
+
+  <!-- Texte d'aide en haut -->
+  <div style="position:absolute; top:1%; left:0; right:0; text-align:center; pointer-events:none;">
+    <div style="color:rgba(255,255,255,0.95); font-family:'JetBrains Mono',monospace; font-size:0.65rem; letter-spacing:0.2em; text-shadow:0 0 4px rgba(0,0,0,0.9); font-weight:600;">CADRE LA CARTE DANS LA ZONE</div>
+  </div>
 </div>
 </div>
-<div style="width:100%; max-width:600px; margin-top:1rem; display:flex; gap:8px; justify-content:center;">
+<div style="width:100%; max-width:600px; margin-top:1rem; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
 <button class="btn" onclick="captureScan()" style="font-size:1rem; padding:0.8rem 2rem;">📸 Capturer</button>
+<button id="finishScanBtn" class="btn" onclick="finishScanAndBuild()" style="display:none; font-size:1rem; padding:0.8rem 2rem; background:var(--success); color:#fff; font-weight:600;">✓ Terminer · Auto-build</button>
 </div>
 <div id="scanCandidatesContainer" style="display:none; width:100%; max-width:600px; margin-top:1rem; background:var(--bg-2); border:1px solid var(--line); border-radius:6px; padding:1rem;"></div>
 <div style="width:100%; max-width:600px; margin-top:1rem; padding:0.7rem 1rem; background:rgba(212,145,90,0.1); border-left:3px solid var(--accent); border-radius:4px;">
-<div class="mono" style="font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;">Conseils</div>
+<div class="mono" style="font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); margin-bottom:4px;">Workflow</div>
+<ol style="margin:0; padding-left:1.2rem; font-size:0.8rem; color:var(--ink-dim); line-height:1.5;">
+<li>Cadre la carte dans le viseur · tap "Capturer"</li>
+<li>Choisis la bonne carte parmi les propositions</li>
+<li>Scan suivant... répète pour toutes tes cartes</li>
+<li>Tap "✓ Terminer · Auto-build" → ton deck sort tout seul</li>
+</ol>
+<div class="mono" style="font-size:0.65rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--accent); margin-top:8px; margin-bottom:4px;">Conseils</div>
 <ul style="margin:0; padding-left:1.2rem; font-size:0.8rem; color:var(--ink-dim); line-height:1.5;">
 <li>Place la carte sur fond uni, bonne lumiere</li>
-<li>Cadre le NOM dans la zone hachuree en haut</li>
-<li>Evite les angles · maintiens la carte droite</li>
+<li>Cadre le NOM dans la zone hachuree dorée</li>
 <li>Foils : bouge un peu pour eviter les reflets</li>
-<li>Si le top result n'est pas bon, choisis dans la liste ou reessaie</li>
+<li>Si le top result n'est pas bon, choisis dans la liste</li>
 </ul>
 </div>
 </div>
@@ -2979,12 +3057,79 @@ function renderPool() {
     const rcls = card.rarity.replace(' ', '');
     div.innerHTML = `
       <img src="${card.image}" alt="${card.name}" loading="lazy">
+      <button class="tile-info-btn" type="button" aria-label="Voir details" title="Voir details">ⓘ</button>
       <span class="tile-rarity rarity-${rcls}">${shortRarity(card.rarity)}</span>
       ${qty > 1 ? `<span class="qty-badge">×${qty}</span>` : ''}
       ${inDeck > 0 ? `<span class="deck-count">${inDeck}</span>` : ''}
     `;
-    div.onclick = e => { e.stopPropagation(); addToDeck(card.id); };
-    div.oncontextmenu = e => { e.preventDefault(); openModal(card); };
+
+    // Bouton info -> modal
+    const infoBtn = div.querySelector('.tile-info-btn');
+    if (infoBtn) {
+      infoBtn.onclick = e => {
+        e.stopPropagation();
+        e.preventDefault();
+        openModal(card);
+      };
+    }
+
+    // Tap simple -> ajouter au deck
+    div.onclick = e => {
+      e.stopPropagation();
+      addToDeck(card.id);
+    };
+
+    // Long press (mobile) ou clic droit (desktop) -> retirer 1 copie de la pool
+    let pressTimer = null;
+    let longPressFired = false;
+
+    const startPress = (e) => {
+      longPressFired = false;
+      pressTimer = setTimeout(() => {
+        longPressFired = true;
+        // Vibration tactile (mobile, si supportee)
+        if (navigator.vibrate) navigator.vibrate(40);
+        // Petit feedback visuel : flash rouge
+        div.style.transition = 'transform 0.15s, box-shadow 0.15s';
+        div.style.transform = 'scale(0.92)';
+        div.style.boxShadow = '0 0 0 3px var(--danger), 0 0 18px rgba(239, 83, 80, 0.6)';
+        setTimeout(() => {
+          removeFromPool(card.id);
+        }, 200);
+      }, 500);
+    };
+    const cancelPress = () => {
+      if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+    };
+
+    div.addEventListener('touchstart', startPress, { passive: true });
+    div.addEventListener('touchend', cancelPress);
+    div.addEventListener('touchmove', cancelPress);
+    div.addEventListener('touchcancel', cancelPress);
+    div.addEventListener('mousedown', startPress);
+    div.addEventListener('mouseup', cancelPress);
+    div.addEventListener('mouseleave', cancelPress);
+
+    // Empecher le clic d'ajouter au deck si long press a deja agi
+    const originalClick = div.onclick;
+    div.onclick = e => {
+      if (longPressFired) {
+        longPressFired = false;
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+      e.stopPropagation();
+      addToDeck(card.id);
+    };
+
+    // Clic droit desktop -> retirer 1 (sans confirmation)
+    div.oncontextmenu = e => {
+      e.preventDefault();
+      e.stopPropagation();
+      removeFromPool(card.id);
+    };
+
     grid.appendChild(div);
     displayed++;
   }
@@ -3050,6 +3195,29 @@ function removeFromDeck(id, all = false) {
   if (idx < 0) return;
   if (all || deck[idx].qty <= 1) deck.splice(idx, 1);
   else deck[idx].qty--;
+  renderPool();
+  renderDeck();
+}
+
+// Retire 1 copie de la carte de la pool (et du deck si presente, pour rester coherent)
+function removeFromPool(id) {
+  // Retirer 1 instance de la pool
+  const poolIdx = pool.findIndex(c => c.id === id);
+  if (poolIdx < 0) return;
+  pool.splice(poolIdx, 1);
+
+  // Si la carte est dans le deck et qu'on n'a plus assez de copies dans la pool, ajuster le deck
+  const remaining = poolCount(id);
+  const inDeckQty = deckCount(id);
+  if (inDeckQty > remaining) {
+    const d = deck.find(x => x.id === id);
+    if (d) {
+      d.qty = remaining;
+      if (d.qty <= 0) {
+        deck = deck.filter(x => x.id !== id);
+      }
+    }
+  }
   renderPool();
   renderDeck();
 }
@@ -4129,6 +4297,22 @@ async function openScanner(target) {
   scannerTarget = target || 'pool';
   if (scannerActive) return;
 
+  // Si on lance depuis le welcome (target=pool) avec une pool existante, demander confirmation
+  if (scannerTarget === 'pool' && pool.length > 0) {
+    const fromWelcome = document.getElementById('welcome').style.display !== 'none';
+    if (fromWelcome) {
+      if (!confirm(`Tu as déjà ${pool.length} cartes dans ta pool. Continuer va AJOUTER les cartes scannées à la pool existante.\n\nOK pour continuer · Annuler pour vider et recommencer`)) {
+        // Vider la pool pour repartir de 0
+        pool = [];
+        deck = [];
+      }
+    }
+  } else if (scannerTarget === 'pool') {
+    // Premier scan : reset la pool pour etre sur de partir clean
+    pool = [];
+    deck = [];
+  }
+
   // Verifier HTTPS (sauf localhost)
   const isLocalhost = ['localhost', '127.0.0.1', ''].includes(location.hostname);
   if (location.protocol !== 'https:' && !isLocalhost) {
@@ -4207,13 +4391,23 @@ async function captureScan() {
   const ctx = canvas.getContext('2d');
   ctx.drawImage(scannerVideo, 0, 0, vw, vh);
 
-  // Pour Lorcana, le nom de la carte est en haut, sur la 1re ligne
-  // On crop la partie superieure (top 22%) pour focaliser l'OCR
+  // Crop sur la zone du NOM definie par le cadre carte affiche a l'ecran :
+  //   - Cadre carte : top 8% / bottom 8% / left 18% / right 18%
+  //   - Zone nom dans le cadre : 62%-72% (en proportion du cadre)
+  //   - En coords video absolues : top 60% / hauteur 10%, gauche 18% / largeur 64%
+  const cropX = Math.floor(vw * 0.18);
+  const cropY = Math.floor(vh * 0.60);
+  const cropW = Math.floor(vw * 0.64);
+  const cropH = Math.floor(vh * 0.12);
+
   const cropCanvas = document.createElement('canvas');
-  cropCanvas.width = vw;
-  cropCanvas.height = Math.floor(vh * 0.22);
+  // Upscale x2 pour aider Tesseract
+  cropCanvas.width = cropW * 2;
+  cropCanvas.height = cropH * 2;
   const cctx = cropCanvas.getContext('2d');
-  cctx.drawImage(canvas, 0, 0, vw, cropCanvas.height, 0, 0, vw, cropCanvas.height);
+  cctx.imageSmoothingEnabled = true;
+  cctx.imageSmoothingQuality = 'high';
+  cctx.drawImage(canvas, cropX, cropY, cropW, cropH, 0, 0, cropCanvas.width, cropCanvas.height);
 
   // Pre-traitement : booster le contraste pour aider l'OCR
   const imgData = cctx.getImageData(0, 0, cropCanvas.width, cropCanvas.height);
@@ -4338,20 +4532,72 @@ function confirmScan(cardId) {
     // Ajouter a la pool (et basculer sur mainApp si on est sur welcome)
     pool.push({ ...card });
     if (document.getElementById('mainApp').style.display !== 'grid') {
-      document.getElementById('welcome').style.display = 'none';
-      document.getElementById('opening').style.display = 'none';
-      document.getElementById('mainApp').style.display = 'grid';
+      // Initialiser l'environnement mainApp en arriere-plan (sans le montrer)
+      // pour que initFilters et renderPool fonctionnent
       if (typeof initFilters === 'function') initFilters();
     }
     renderPool();
-    showScannerStatus('Ajoute a la pool : ' + card.name + ' ✓');
+    showScannerStatus(`✓ Ajouté : ${card.name}`);
   } else {
     // Ajouter au deck
     addToDeck(cardId);
-    showScannerStatus('Ajoute au deck : ' + card.name + ' ✓');
+    showScannerStatus(`✓ Ajouté au deck : ${card.name}`);
   }
 
   hideScanCandidates();
+
+  // Mettre à jour le compteur visuel
+  updateScanCounter();
+
+  // Si on est en mode pool, afficher le bouton "Terminer & Auto-build"
+  // (visible dès la 1ere carte scannée)
+  if (scannerTarget === 'pool' && pool.length > 0) {
+    const finishBtn = document.getElementById('finishScanBtn');
+    if (finishBtn) finishBtn.style.display = 'inline-block';
+  }
+}
+
+function updateScanCounter() {
+  const counter = document.getElementById('scanCounter');
+  const value = document.getElementById('scanCountValue');
+  if (!counter || !value) return;
+
+  const count = scannerTarget === 'pool' ? pool.length : deck.reduce((s, d) => s + d.qty, 0);
+  if (count > 0) {
+    counter.style.display = 'inline-block';
+    value.textContent = count;
+    // Petite animation pulse
+    counter.style.animation = 'none';
+    counter.offsetHeight; // force reflow
+    counter.style.animation = 'scanCountPulse 0.4s ease';
+  }
+}
+
+// Termine le scan : ferme le scanner, va dans la pool view, lance l'auto-build
+function finishScanAndBuild() {
+  if (pool.length === 0) {
+    alert('Tu n\'as scanné aucune carte !');
+    return;
+  }
+
+  closeScanner();
+
+  // Basculer vers la pool view
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('opening').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'grid';
+  if (typeof initFilters === 'function') initFilters();
+  renderPool();
+  renderDeck();
+
+  // Confirmer avant l'auto-build
+  setTimeout(() => {
+    if (confirm(`Tu as ${pool.length} cartes dans ta pool.\n\nLancer l'Auto-build pour construire un deck de 40 cartes optimisé ?`)) {
+      if (typeof autoBuild === 'function') {
+        autoBuild();
+      }
+    }
+  }, 300);
 }
 
 function closeScanner() {
@@ -4364,6 +4610,12 @@ function closeScanner() {
     scannerStream = null;
   }
   hideScanCandidates();
+
+  // Reset UI scanner
+  const counter = document.getElementById('scanCounter');
+  if (counter) counter.style.display = 'none';
+  const finishBtn = document.getElementById('finishScanBtn');
+  if (finishBtn) finishBtn.style.display = 'none';
 }
 
 
