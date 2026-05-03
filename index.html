@@ -813,27 +813,32 @@ header .signature {
   .panel-header { padding: 0.8rem 1rem !important; flex-wrap: wrap; gap: 0.5rem; }
   .panel-header h3 { font-size: 1rem; }
 
-  /* Filtres sur plusieurs lignes (plus utilisable que scroll horizontal) */
+  /* Filtres compacts sur mobile - hauteur limitée + scroll vertical */
   .filters {
-    padding: 0.6rem !important;
-    gap: 0.4rem !important;
+    padding: 0.5rem !important;
+    gap: 0.3rem !important;
     flex-wrap: wrap !important;
     overflow-x: visible;
+    max-height: 30vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    border-bottom: 1px solid var(--line);
   }
   .filter-group {
     flex-shrink: 0;
-    gap: 0.25rem !important;
+    gap: 0.2rem !important;
     flex-wrap: wrap;
   }
   .filter-btn, .filter-chip {
-    padding: 5px 9px !important;
-    font-size: 0.7rem !important;
-    min-height: 28px;
+    padding: 4px 8px !important;
+    font-size: 0.65rem !important;
+    min-height: 26px;
+    letter-spacing: 0.05em !important;
   }
   .filter-divider { display: none; }
   .sort-select {
-    font-size: 0.7rem !important;
-    padding: 5px 6px !important;
+    font-size: 0.65rem !important;
+    padding: 4px 6px !important;
   }
   .search-box {
     width: 100% !important;
@@ -842,11 +847,38 @@ header .signature {
     flex-basis: 100%;
   }
 
-  /* Pool tiles plus petits sur mobile */
-  .pool-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  /* Pool tiles : 3 colonnes propres sur mobile */
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
     gap: 0.4rem !important;
     padding: 0.6rem !important;
+    max-height: none !important;
+  }
+  /* Badges plus petits et plus discrets */
+  .card-tile .tile-rarity {
+    font-size: 0.5rem !important;
+    padding: 1px 4px !important;
+    bottom: 3px !important;
+    left: 3px !important;
+    letter-spacing: 0.05em !important;
+  }
+  .card-tile .qty-badge {
+    font-size: 0.6rem !important;
+    height: 16px !important;
+    min-width: 18px !important;
+    padding: 0 4px !important;
+    bottom: 3px !important;
+  }
+  .card-tile.is-foil::after {
+    font-size: 0.45rem !important;
+    padding: 1px 3px !important;
+    top: 3px !important;
+    right: 3px !important;
+    letter-spacing: 0.04em !important;
+  }
+  .card-tile .deck-count {
+    font-size: 0.7rem !important;
+    padding: 3px 7px !important;
   }
 
   /* Deck panel : full width sur mobile */
@@ -912,8 +944,12 @@ header .signature {
   .reveal-card .back::after { font-size: 1.4rem; }
   .reveal-card .back .label { display: none; }
 
-  .pool-grid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)) !important;
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .pool-group-header {
+    font-size: 0.6rem !important;
+    padding: 0.4rem 0.2rem 0.2rem !important;
   }
 }
 
@@ -2347,14 +2383,10 @@ function closeReveal() {
   currentRevealIdx = -1;
   renderBoosters();
 
-  // Quand TOUS les boosters sont ouverts (6 en Sealed, 24 en Display, 96 en Case)
+  // Quand TOUS les boosters sont ouverts : animation top hits + recap
+  // Marche pour Sealed (6), Display (24) et Case (96)
   if (boostersOpened >= boosters.length) {
-    // En mode Open Box (24 ou 96), declencher le recap d'animation top hits
-    if (boosters.length === 24 || boosters.length === 96) {
-      setTimeout(() => showOpeningResults(pool), 400);
-    } else {
-      setTimeout(showMainApp, 400);
-    }
+    setTimeout(() => showOpeningResults(pool), 400);
   }
 }
 
@@ -2505,6 +2537,32 @@ function showOpeningResults(allCards) {
     else if (luckRatio < 2.5) { luckLabel = 'GROSSE chance 🔥'; luckColor = 'var(--accent)'; }
     else { luckLabel = 'JACKPOT 💎'; luckColor = '#ffd966'; }
 
+    // === BATTLE SCORE - bareme officiel "Battle d'ouverture" ===
+    // Common 0/F1 · Uncommon 0/F2 · Rare 3/F6 · SR 5/F10 · L 10/F15
+    // Epic 20 · Enchanted 30 · Iconic 45 (foil ou non = meme valeur)
+    const POINTS = {
+      'Common':     { normal: 0,  foil: 1 },
+      'Uncommon':   { normal: 0,  foil: 2 },
+      'Rare':       { normal: 3,  foil: 6 },
+      'Super Rare': { normal: 5,  foil: 10 },
+      'Legendary':  { normal: 10, foil: 15 },
+      'Epic':       { normal: 20, foil: 20 },
+      'Enchanted':  { normal: 30, foil: 30 },
+      'Iconic':     { normal: 45, foil: 45 },
+    };
+    let battleScore = 0;
+    const breakdown = {};
+    for (const c of allCards) {
+      const pt = POINTS[c.rarity];
+      if (!pt) continue;
+      const v = c.foil ? pt.foil : pt.normal;
+      battleScore += v;
+      const key = c.foil ? c.rarity + ' Foil' : c.rarity;
+      if (!breakdown[key]) breakdown[key] = { count: 0, total: 0 };
+      breakdown[key].count++;
+      breakdown[key].total += v;
+    }
+
     const summary = document.createElement('div');
     summary.style.cssText = `
       max-width: 700px; width: 100%;
@@ -2544,11 +2602,86 @@ function showOpeningResults(allCards) {
       </div>
 
       <div style="text-align:center; margin-top:1rem;">
+        <button class="btn" id="copyBattleScoreBtn" style="margin-right:0.5rem; padding:0.7rem 1.2rem; font-size:0.85rem; background:var(--bg-3); color:var(--accent); border:1px solid var(--accent);">📋 Copier mon score</button>
         <button class="btn" onclick="closeResultsOverlay()" style="padding:0.8rem 2rem; font-size:1rem;">Voir ma pool</button>
       </div>
     `;
 
     overlay.appendChild(summary);
+
+    // === BATTLE SCORE BLOCK (insere juste avant les top hits) ===
+    const battleBlock = document.createElement('div');
+    battleBlock.style.cssText = `
+      max-width: 700px; width: 100%;
+      background: linear-gradient(135deg, rgba(212, 145, 90, 0.15), rgba(155, 100, 220, 0.1));
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(212, 145, 90, 0.25);
+    `;
+
+    // Top 5 du breakdown par valeur totale
+    const breakdownEntries = Object.entries(breakdown)
+      .filter(([k, v]) => v.total > 0)
+      .sort((a, b) => b[1].total - a[1].total)
+      .slice(0, 6);
+
+    battleBlock.innerHTML = `
+      <div class="mono" style="font-size:0.65rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--accent); margin-bottom:6px;">⚔️ Battle d'ouverture</div>
+      <div style="font-size:0.85rem; color:var(--ink-quiet); margin-bottom:0.5rem;">Ton score selon le barème officiel <button id="showScaleBtn" style="background:none;border:1px solid var(--ink-quiet);color:var(--ink-quiet);width:18px;height:18px;border-radius:50%;font-size:0.7rem;cursor:pointer;padding:0;line-height:1;margin-left:4px;">?</button></div>
+      <div id="scaleDetails" style="display:none; font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:var(--ink-dim); background:var(--bg-3); padding:0.6rem; border-radius:4px; margin:0.5rem 0; line-height:1.6;">
+        Common: 0 / Foil 1<br>
+        Uncommon: 0 / Foil 2<br>
+        Rare: 3 / Foil 6<br>
+        Super Rare: 5 / Foil 10<br>
+        Legendary: 10 / Foil 15<br>
+        Epic: 20 · Enchanted: 30 · Iconic: 45
+      </div>
+      <div style="font-size:3.5rem; font-weight:800; color:var(--accent); line-height:1; margin: 0.5rem 0; text-shadow: 0 0 20px rgba(212, 145, 90, 0.6);">
+        ${battleScore}<span style="font-size:1.2rem; color:var(--ink-quiet); margin-left:8px;">pts</span>
+      </div>
+      ${breakdownEntries.length > 0 ? `
+        <div style="display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(212, 145, 90, 0.3);">
+          ${breakdownEntries.map(([rarity, data]) => `
+            <div style="background:var(--bg-3); padding:0.3rem 0.6rem; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:0.7rem; color:var(--ink-dim);">
+              ${rarity} ×${data.count} <span style="color:var(--accent); font-weight:700;">+${data.total}</span>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+      <div style="margin-top:0.8rem; font-size:0.7rem; color:var(--ink-quiet); font-style:italic;">
+        Compare avec tes potes pour voir qui a fait la meilleure ouverture
+      </div>
+    `;
+
+    overlay.insertBefore(battleBlock, summary);
+
+    // Toggle pour afficher le bareme
+    const scaleBtn = document.getElementById('showScaleBtn');
+    if (scaleBtn) {
+      scaleBtn.onclick = () => {
+        const det = document.getElementById('scaleDetails');
+        det.style.display = det.style.display === 'none' ? 'block' : 'none';
+      };
+    }
+
+    // Bouton copier le score (texte partageable)
+    const copyBtn = document.getElementById('copyBattleScoreBtn');
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        const modeName = totalPacks === 24 ? 'Display' : totalPacks === 96 ? 'Case' : 'Sealed';
+        const text = `🎴 Lorcana Wilds Unknown · ${modeName} (${totalPacks} packs)\n⚔️ Battle d'ouverture : ${battleScore} pts\n💎 ${totalIconic} Iconic · ✨ ${totalEnchanted} Enchanted · ⚡ ${totalEpic} Epic · ⭐ ${totalLeg} Legendary\n${luckLabel}`;
+        navigator.clipboard?.writeText(text).then(() => {
+          copyBtn.textContent = '✓ Copié !';
+          setTimeout(() => { copyBtn.textContent = '📋 Copier mon score'; }, 2000);
+        }).catch(() => {
+          // Fallback : alert avec le texte
+          alert(text);
+        });
+      };
+    }
 
     // Si on a des hits notables, afficher en grille en dessous
     if (topHits.length > 0) {
