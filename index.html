@@ -158,6 +158,16 @@ header .signature {
   flex-wrap: wrap;
 }
 
+/* === Optimisations tap mobile === */
+.booster, .reveal-card, .card-tile, .filter-chip, .btn {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+/* Garantir que les cartes restent interactives meme pendant les animations */
+.reveal-card, .booster {
+  pointer-events: auto;
+}
+
 .booster {
   width: 110px;
   height: 155px;
@@ -354,6 +364,10 @@ header .signature {
   transform: rotateY(0deg);
   z-index: 2;
   overflow: hidden;
+  /* Glow uniforme sur tous les dos - effet "magique" sans spoiler la rarete */
+  box-shadow:
+    0 0 12px rgba(212, 145, 90, 0.35),
+    0 0 24px rgba(212, 145, 90, 0.15);
 }
 
 /* Bordure decorative interieure */
@@ -542,7 +556,8 @@ header .signature {
 }
 
 /* Bordure doree vibrante autour des foils */
-.reveal-card.foil {
+/* Glow foil : visible UNIQUEMENT apres le flip (sinon ca spoil) */
+.reveal-card.foil.flipped {
   box-shadow:
     0 0 12px rgba(255, 215, 100, 0.5),
     0 0 24px rgba(212, 145, 90, 0.3);
@@ -554,8 +569,8 @@ header .signature {
   50% { box-shadow: 0 0 18px rgba(255, 215, 100, 0.8), 0 0 36px rgba(212, 145, 90, 0.5); }
 }
 
-/* Foil ultra-rare (Legendary/Enchanted/Epic/Iconic) : effet renforce */
-.reveal-card.foil-rare {
+/* Foil ultra-rare (Legendary/Enchanted/Epic/Iconic) : effet renforce APRES flip */
+.reveal-card.foil-rare.flipped {
   box-shadow:
     0 0 20px rgba(255, 220, 120, 0.8),
     0 0 40px rgba(212, 145, 90, 0.6),
@@ -779,9 +794,9 @@ header .signature {
     right: 0;
     margin: 0 !important;
     padding: 0.7rem 0.8rem;
-    background: rgba(0, 0, 0, 0.95);
-    border-top: 1px solid var(--line);
-    backdrop-filter: blur(10px);
+    /* Fond opaque au lieu de blur (lourd sur iOS Safari) */
+    background: rgba(15, 12, 10, 0.98);
+    border-top: 1px solid var(--accent);
     flex-direction: row !important;
     gap: 0.5rem !important;
     z-index: 1001;
@@ -789,30 +804,42 @@ header .signature {
   .reveal-controls .btn {
     flex: 1;
     font-size: 0.85rem !important;
-    padding: 0.7rem 0.5rem !important;
+    padding: 0.85rem 0.5rem !important;
+    /* Tap target minimum 44px (recommandation Apple/Google) */
+    min-height: 44px;
   }
 
   /* Pool panel : header compact */
   .panel-header { padding: 0.8rem 1rem !important; flex-wrap: wrap; gap: 0.5rem; }
   .panel-header h3 { font-size: 1rem; }
 
-  /* Filters scrollables horizontalement si trop nombreux */
+  /* Filtres sur plusieurs lignes (plus utilisable que scroll horizontal) */
   .filters {
     padding: 0.6rem !important;
     gap: 0.4rem !important;
-    overflow-x: auto;
-    flex-wrap: nowrap !important;
+    flex-wrap: wrap !important;
+    overflow-x: visible;
   }
-  .filter-group { flex-shrink: 0; gap: 0.25rem !important; }
-  .filter-btn {
-    padding: 4px 8px !important;
+  .filter-group {
+    flex-shrink: 0;
+    gap: 0.25rem !important;
+    flex-wrap: wrap;
+  }
+  .filter-btn, .filter-chip {
+    padding: 5px 9px !important;
     font-size: 0.7rem !important;
+    min-height: 28px;
   }
   .filter-divider { display: none; }
+  .sort-select {
+    font-size: 0.7rem !important;
+    padding: 5px 6px !important;
+  }
   .search-box {
     width: 100% !important;
     max-width: none !important;
     font-size: 0.85rem;
+    flex-basis: 100%;
   }
 
   /* Pool tiles plus petits sur mobile */
@@ -999,6 +1026,34 @@ header .signature {
 .search-box:focus { outline: none; border-color: var(--accent); }
 .search-box::placeholder { color: var(--ink-quiet); }
 
+.sort-select {
+  padding: 0.4rem 0.5rem;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+}
+.sort-select:focus { outline: none; border-color: var(--accent); }
+
+/* Headers de groupes dans la pool grid */
+.pool-group-header {
+  grid-column: 1 / -1;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding: 0.6rem 0.4rem 0.3rem;
+  border-bottom: 1px solid rgba(212, 145, 90, 0.25);
+  margin-bottom: 0.3rem;
+  font-weight: 700;
+}
+.pool-group-header:first-child { padding-top: 0.2rem; }
+
 /* CARD GRID ============================== */
 .card-grid {
   padding: 1rem;
@@ -1034,7 +1089,10 @@ header .signature {
 
 .card-tile.in-deck {
   border-color: var(--success);
-  box-shadow: 0 0 0 2px var(--success);
+  box-shadow: 0 0 0 2px var(--success), 0 0 12px rgba(76, 175, 80, 0.4);
+}
+.card-tile.in-deck img {
+  filter: brightness(0.7);
 }
 
 .card-tile img {
@@ -1046,35 +1104,41 @@ header .signature {
 
 .card-tile .qty-badge {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
   background: rgba(0,0,0,0.85);
   color: var(--ink);
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   z-index: 5;
+  border: 1px solid rgba(212, 145, 90, 0.4);
 }
 
 .card-tile .deck-count {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: var(--success);
   color: var(--bg);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 4px 10px;
+  border-radius: 4px;
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 700;
   z-index: 5;
   display: none;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.8);
+  letter-spacing: 0.05em;
 }
 
 .card-tile.in-deck .deck-count { display: block; }
@@ -1286,11 +1350,21 @@ header .signature {
   pointer-events: auto;
 }
 
-/* Sur ecrans tactiles (mobile/tablet) : bouton toujours visible et clickable */
+/* Sur ecrans tactiles (mobile/tablet) : bouton toujours visible et plus grand */
 @media (hover: none) {
   .deck-list-item .remove {
-    opacity: 0.4;
+    opacity: 0.6;
     pointer-events: auto;
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+    /* Tap target invisible elargi */
+    position: relative;
+  }
+  .deck-list-item .remove::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
   }
   .deck-list-item:active .remove,
   .deck-list-item.active .remove {
@@ -1522,7 +1596,7 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 
 <!-- OPENING STAGE ============================ -->
 <div id="opening" class="opening-stage" style="display:none;">
-<h2 style="font-weight: 700; font-size: 1.4rem; margin-bottom: 0.4rem;">6 boosters scellés</h2>
+<h2 id="openingTitle" style="font-weight: 700; font-size: 1.4rem; margin-bottom: 0.4rem;">6 boosters scellés</h2>
 <p class="mono" style="font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-quiet);">Clique sur un booster pour l'ouvrir</p>
 <div id="boostersRow" class="boosters-row"></div>
 <button class="btn-ghost btn btn-sm" onclick="openAllRemaining()">Tout ouvrir d'un coup</button>
@@ -1554,6 +1628,14 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 <div class="filter-group" id="typeFilters"></div>
 <div class="filter-divider"></div>
 <div class="filter-group" id="rarityFilters"></div>
+<div class="filter-divider"></div>
+<div class="filter-group" id="costFilters"></div>
+<div class="filter-divider"></div>
+<select id="sortMode" class="sort-select" title="Mode de tri">
+<option value="color">Tri : Couleur</option>
+<option value="cost">Tri : Coût ↑</option>
+<option value="rarity">Tri : Rareté ↓</option>
+</select>
 <input type="text" class="search-box" id="searchBox" placeholder="Recherche...">
 </div>
 <div class="card-grid" id="cardGrid"></div>
@@ -1730,7 +1812,7 @@ let deck = []; // {id, qty}
 let boosters = []; // [[card,...], ...]
 let boostersOpened = 0;
 let currentRevealIdx = -1;
-let activeFilters = { colors: new Set(), types: new Set(), rarities: new Set(), search: '' };
+let activeFilters = { colors: new Set(), types: new Set(), rarities: new Set(), costs: new Set(), search: '', sortMode: 'color' };
 let activeTab = 'list';
 
 // =========================================================================
@@ -1803,8 +1885,26 @@ function generateBooster() {
     }
   }
 
-  // --- 3 UNCOMMONS : random sans contrainte de couleur ---
-  cards.push(...pickRandom(byRarity.Uncommon, 3));
+  // --- 3 UNCOMMONS : forcer 3 couleurs differentes ---
+  // En vrai chez Ravensburger, on observe que les Uncommons sont quasi
+  // toujours de 3 couleurs differentes (jamais 2 meme couleur dans un pack)
+  const uncommonColors = ['Amber', 'Amethyst', 'Emerald', 'Ruby', 'Sapphire', 'Steel'];
+  // Shuffle Fisher-Yates avec le rng du booster
+  for (let i = uncommonColors.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [uncommonColors[i], uncommonColors[j]] = [uncommonColors[j], uncommonColors[i]];
+  }
+  // Prendre 3 couleurs et tirer 1 Uncommon de chaque
+  for (let i = 0; i < 3; i++) {
+    const col = uncommonColors[i];
+    const uncPool = byRarity.Uncommon.filter(c => c.color === col);
+    if (uncPool.length > 0) {
+      cards.push(pickRandom(uncPool, 1)[0]);
+    } else {
+      // Fallback : random Uncommon si une couleur est vide
+      cards.push(pickRandom(byRarity.Uncommon, 1)[0]);
+    }
+  }
 
   // --- 2 SLOTS RARE+ (garantis, jamais downgrades) ---
   // SEULEMENT Rare / Super Rare / Legendary - JAMAIS Enchanted/Epic/Iconic
@@ -1942,6 +2042,7 @@ function startSealed() {
 
   // Afficher le code de partage en haut de l'opening si multijoueur
   updateSeedDisplay();
+  document.getElementById('openingTitle').textContent = `${boosters.length} boosters scellés`;
   renderBoosters();
 }
 
@@ -2095,6 +2196,7 @@ function openBoosterBox() {
     <div style="font-size: 0.8rem; color: var(--ink-dim);">Solo · ${nbPacks} boosters · ${expectedEnch} · ${expectedLeg} · ${expectedSr}</div>
   </div>`;
 
+  document.getElementById('openingTitle').textContent = `${labelMode} · ${nbPacks} boosters`;
   renderBoosters();
 }
 
@@ -2245,8 +2347,14 @@ function closeReveal() {
   currentRevealIdx = -1;
   renderBoosters();
 
-  if (boostersOpened === 6) {
-    setTimeout(showMainApp, 400);
+  // Quand TOUS les boosters sont ouverts (6 en Sealed, 24 en Display, 96 en Case)
+  if (boostersOpened >= boosters.length) {
+    // En mode Open Box (24 ou 96), declencher le recap d'animation top hits
+    if (boosters.length === 24 || boosters.length === 96) {
+      setTimeout(() => showOpeningResults(pool), 400);
+    } else {
+      setTimeout(showMainApp, 400);
+    }
   }
 }
 
@@ -2622,6 +2730,29 @@ function initFilters() {
     rf.appendChild(btn);
   });
 
+  // Filtres de cout : 1, 2, 3, 4, 5, 6, 7+
+  const cf2 = document.getElementById('costFilters');
+  cf2.innerHTML = '';
+  const costs = [1, 2, 3, 4, 5, 6, '7+'];
+  costs.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-chip';
+    btn.textContent = c;
+    btn.title = `Coût ${c}`;
+    btn.onclick = () => toggleFilter('costs', c, btn);
+    cf2.appendChild(btn);
+  });
+
+  // Selecteur de tri
+  const sortSel = document.getElementById('sortMode');
+  if (sortSel) {
+    sortSel.value = activeFilters.sortMode;
+    sortSel.onchange = e => {
+      activeFilters.sortMode = e.target.value;
+      renderPool();
+    };
+  }
+
   const sb = document.getElementById('searchBox');
   sb.oninput = e => { activeFilters.search = e.target.value.toLowerCase(); renderPool(); };
 
@@ -2654,16 +2785,55 @@ function renderPool() {
 
   let displayed = 0;
 
-  // Sort by color, cost, name
+  // Tri selon le mode choisi
+  const mode = activeFilters.sortMode || 'color';
   const list = Object.values(counts).sort((a, b) => {
-    const co = colorOrder(a.card.color) - colorOrder(b.card.color);
-    if (co) return co;
-    if (a.card.cost !== b.card.cost) return a.card.cost - b.card.cost;
-    return a.card.name.localeCompare(b.card.name);
+    if (mode === 'cost') {
+      // Cout croissant, puis couleur, puis nom
+      if (a.card.cost !== b.card.cost) return a.card.cost - b.card.cost;
+      const co = colorOrder(a.card.color) - colorOrder(b.card.color);
+      if (co) return co;
+      return a.card.name.localeCompare(b.card.name);
+    } else if (mode === 'rarity') {
+      // Rarete decroissante (Iconic en premier), puis cout, puis nom
+      const rd = rarityRank(b.card.rarity) - rarityRank(a.card.rarity);
+      if (rd) return rd;
+      if (a.card.cost !== b.card.cost) return a.card.cost - b.card.cost;
+      return a.card.name.localeCompare(b.card.name);
+    } else {
+      // Defaut : couleur, puis cout, puis nom
+      const co = colorOrder(a.card.color) - colorOrder(b.card.color);
+      if (co) return co;
+      if (a.card.cost !== b.card.cost) return a.card.cost - b.card.cost;
+      return a.card.name.localeCompare(b.card.name);
+    }
   });
 
+  let lastGroupKey = null;
   for (const { card, qty, hasFoil } of list) {
     if (!matchesFilters(card)) continue;
+
+    // Header de groupe selon le tri
+    let groupKey = null, groupLabel = null;
+    if (mode === 'cost') {
+      groupKey = card.cost;
+      groupLabel = `Coût ${card.cost}`;
+    } else if (mode === 'rarity') {
+      groupKey = card.rarity;
+      groupLabel = card.rarity;
+    } else {
+      groupKey = card.color;
+      const colNamesFr = { Amber: 'Ambre', Amethyst: 'Améthyste', Emerald: 'Émeraude', Ruby: 'Rubis', Sapphire: 'Saphir', Steel: 'Acier' };
+      groupLabel = colNamesFr[card.color] || card.color;
+    }
+    if (groupKey !== lastGroupKey) {
+      const header = document.createElement('div');
+      header.className = 'pool-group-header';
+      header.textContent = groupLabel;
+      grid.appendChild(header);
+      lastGroupKey = groupKey;
+    }
+
     const inDeck = deckCount(card.id);
     const div = document.createElement('div');
     let tileCls = 'card-tile';
@@ -2677,7 +2847,7 @@ function renderPool() {
     div.innerHTML = `
       <img src="${card.image}" alt="${card.name}" loading="lazy">
       <span class="tile-rarity rarity-${rcls}">${shortRarity(card.rarity)}</span>
-      ${qty > 1 ? `<span class="qty-badge">${qty}</span>` : ''}
+      ${qty > 1 ? `<span class="qty-badge">×${qty}</span>` : ''}
       ${inDeck > 0 ? `<span class="deck-count">${inDeck}</span>` : ''}
     `;
     div.onclick = e => { e.stopPropagation(); addToDeck(card.id); };
@@ -2702,6 +2872,16 @@ function matchesFilters(card) {
   if (f.colors.size && !f.colors.has(card.color)) return false;
   if (f.types.size && !f.types.has(card.type)) return false;
   if (f.rarities.size && !f.rarities.has(card.rarity)) return false;
+  if (f.costs.size) {
+    const cost = card.cost || 0;
+    // 1, 2, 3, 4, 5, 6 = exact, '7+' = 7 ou plus
+    let matchCost = false;
+    for (const c of f.costs) {
+      if (c === '7+' && cost >= 7) { matchCost = true; break; }
+      if (typeof c === 'number' && cost === c) { matchCost = true; break; }
+    }
+    if (!matchCost) return false;
+  }
   if (f.search && !card.name.toLowerCase().includes(f.search)) return false;
   return true;
 }
@@ -2822,12 +3002,14 @@ function renderDeckList() {
       const isUltra = ['Epic', 'Enchanted', 'Iconic'].includes(c.rarity);
       const ultraClass = isUltra ? ' is-ultra' : '';
       const rarityBadge = isUltra ? `<span class="rarity-badge rarity-${c.rarity.replace(' ','')}" style="margin-left:4px;font-size:0.55rem;padding:1px 4px">${shortRarity(c.rarity)}</span>` : '';
+      // Echappement HTML pour les noms avec caracteres speciaux
+      const safeName = String(c.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       html += `
         <div class="deck-list-item${ultraClass}" onclick="openModal(CARDS.find(x=>x.id===${c.id}))">
           <span class="qty">${c.qty}×</span>
           <span class="cost-pill">${c.cost}</span>
           <span class="color-bar" style="background:var(--${c.color.toLowerCase()})"></span>
-          <span class="name">${c.name}${rarityBadge}</span>
+          <span class="name">${safeName}${rarityBadge}</span>
           <button class="remove" onclick="event.stopPropagation();removeFromDeck(${c.id})">−</button>
         </div>`;
     }
@@ -3419,22 +3601,40 @@ function openModal(card) {
   } else {
     stats = `<span class="stat-pill">C${card.cost}</span>`;
   }
+
+  // Helper d'echappement HTML pour les contenus textuels
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
   mc.innerHTML = `
-    <div class="modal-img"><img src="${card.image}" alt="${card.name}"></div>
+    <div class="modal-img"><img src="${esc(card.image)}" alt="${esc(card.name)}"></div>
     <div class="modal-info">
-      <button class="close-x" onclick="closeModal()">×</button>
+      <button class="close-x" id="modalCloseBtn">×</button>
       <div class="mono" style="font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-quiet); margin-bottom: 0.4rem;">
-        <span class="dot dot-${card.color}"></span>${card.color} · ${card.rarity} · ${card.type}${card.inkwell ? ' · Encrable' : ''}
+        <span class="dot dot-${esc(card.color)}"></span>${esc(card.color)} · ${esc(card.rarity)} · ${esc(card.type)}${card.inkwell ? ' · Encrable' : ''}
       </div>
-      <h3>${card.name}</h3>
+      <h3>${esc(card.name)}</h3>
       <div class="stats">${stats}</div>
-      <div class="text">${card.text || '(aucun texte)'}</div>
+      <div class="text">${esc(card.text || '(aucun texte)')}</div>
       <div class="modal-actions">
         <span class="mono" style="font-size:0.75rem; color:var(--ink-quiet); align-self:center;">Pool: ${inPool} · Deck: ${inDeck}</span>
-        <button class="btn btn-sm" onclick="addToDeck(${card.id});closeModal()" ${inDeck >= inPool ? 'disabled' : ''} style="background:var(--success);color:#fff;font-weight:600;">+ Ajouter au deck</button>
-        <button class="btn-ghost btn btn-sm" onclick="if(confirm('Retirer ${card.name.replace(/'/g, '\\\\\'')} du deck ?'))removeFromDeck(${card.id});closeModal()" ${inDeck === 0 ? 'disabled' : ''} style="border-color:var(--danger);color:var(--danger);">− Retirer</button>
+        <button class="btn btn-sm" id="modalAddBtn" ${inDeck >= inPool ? 'disabled' : ''} style="background:var(--success);color:#fff;font-weight:600;">+ Ajouter au deck</button>
+        <button class="btn-ghost btn btn-sm" id="modalRemoveBtn" ${inDeck === 0 ? 'disabled' : ''} style="border-color:var(--danger);color:var(--danger);">− Retirer</button>
       </div>
     </div>`;
+
+  // Attacher les event listeners proprement (evite les bugs d'echappement)
+  document.getElementById('modalCloseBtn').onclick = closeModal;
+  document.getElementById('modalAddBtn').onclick = () => {
+    addToDeck(card.id);
+    closeModal();
+  };
+  document.getElementById('modalRemoveBtn').onclick = () => {
+    if (confirm(`Retirer "${card.name}" du deck ?`)) {
+      removeFromDeck(card.id);
+    }
+    closeModal();
+  };
+
   document.getElementById('modal').classList.add('active');
 }
 
