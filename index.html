@@ -899,18 +899,45 @@ header .signature {
   .deck-tabs { font-size: 0.75rem !important; }
   .deck-tabs button { padding: 0.5rem 0.8rem !important; }
 
-  /* Modal carte : full screen sur mobile */
-  .modal { padding: 0.5rem; }
+  /* Modal carte : full screen sur mobile, image grande */
+  .modal { padding: 0.4rem; }
   .modal-content {
     grid-template-columns: 1fr;
-    max-height: 95vh;
+    max-height: 96vh;
     overflow-y: auto;
+    width: 100%;
+    max-width: 500px;
   }
-  .modal-img { max-height: 40vh; overflow: hidden; }
-  .modal-img img { object-fit: contain; }
+  /* Image bien plus grande pour mobile : 55vh ou taille naturelle */
+  .modal-img {
+    max-height: 60vh;
+    overflow: hidden;
+    background: var(--bg-3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-img img {
+    max-height: 60vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+  }
   .modal-info { padding: 1rem !important; }
-  .modal-actions { flex-wrap: wrap; gap: 0.4rem !important; }
-  .modal-actions .btn { font-size: 0.8rem !important; padding: 0.5rem 0.8rem !important; }
+  .modal-info h3 { font-size: 1.1rem !important; }
+  .modal-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+    flex-direction: column;
+  }
+  .modal-actions .btn {
+    font-size: 0.95rem !important;
+    padding: 0.8rem 1rem !important;
+    width: 100%;
+    min-height: 48px;
+  }
+  .modal-actions > span { width: 100%; text-align: center; padding: 0.4rem; background: var(--bg-3); border-radius: 4px; }
 
   /* Recap d'ouverture : 1 colonne sur mobile */
   #resultsOverlay > div[style*="grid-template-columns:1fr 1fr"] {
@@ -1137,18 +1164,19 @@ header .signature {
   filter: brightness(0.7);
 }
 
-/* Bouton info "i" sur chaque tile - acces au modal sans long press */
+/* Bouton info "i" sur chaque tile - acces au modal */
+/* Position : en haut-droite par defaut (loin du cout en haut-gauche) */
 .card-tile .tile-info-btn {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
-  border: 1px solid rgba(212, 145, 90, 0.5);
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid rgba(212, 145, 90, 0.6);
   color: var(--accent);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
   z-index: 6;
@@ -1166,11 +1194,12 @@ header .signature {
   color: var(--bg);
   transform: scale(1.1);
 }
-/* Si la tile est foil, decaler le bouton info pour ne pas chevaucher le badge FOIL */
+/* Si la tile est foil, le badge FOIL prend la place top-right
+   donc le bouton info va a droite mais SOUS le badge FOIL (pas a gauche pour pas cacher le cout) */
 .card-tile.is-foil .tile-info-btn {
-  top: 4px;
-  right: auto;
-  left: 4px;
+  top: 28px;  /* sous le badge FOIL */
+  right: 4px;
+  left: auto;
   background: rgba(0, 0, 0, 0.85);
 }
 
@@ -1527,6 +1556,24 @@ header .signature {
 
 .deck-actions .btn { flex: 1; }
 
+/* Bouton "Jouer sur Duels.ink" : style distinctif, gradient violet/bleu lore */
+.deck-actions .play-btn {
+  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);
+  transition: all 0.2s ease;
+  flex-basis: 100%;
+  min-height: 40px;
+}
+.deck-actions .play-btn:hover,
+.deck-actions .play-btn:active {
+  background: linear-gradient(135deg, #8b4cf3 0%, #6d28d9 100%);
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.5);
+  transform: translateY(-1px);
+}
+
 /* MODAL CARD DETAIL ======================== */
 .modal {
   position: fixed;
@@ -1612,9 +1659,37 @@ header .signature {
 </head>
 <body>
 
+<!-- LANGUAGE SELECTOR : ecran initial demande FR ou EN ==================== -->
+<div id="langSelector" style="display:none; position:fixed; inset:0; z-index:99999; background:linear-gradient(135deg, #1a1612 0%, #2a1f18 100%); flex-direction:column; align-items:center; justify-content:center; padding:2rem; text-align:center;">
+  <div style="margin-bottom: 2rem; color: var(--accent); font-family: 'Bricolage Grotesque', sans-serif; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.02em;">Lorcana Sealed Set 12</div>
+  <div style="margin-bottom: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.25em; color: var(--ink-quiet); text-transform: uppercase;">Wilds Unknown · Pre-release</div>
+  <div style="margin-bottom: 3rem; font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--ink-dim); font-size: 1.1rem;">Choose your language · Choisis ta langue</div>
+
+  <div style="display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 320px;">
+    <button onclick="selectLanguage('fr')" type="button" class="lang-choice-btn" style="padding: 1.4rem 2rem; background: var(--bg-2); border: 2px solid var(--accent); color: var(--ink); border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: 600; -webkit-tap-highlight-color: transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 64px;">
+      <span style="font-size: 2rem;">🇫🇷</span>
+      <span>Français</span>
+    </button>
+
+    <button onclick="selectLanguage('en')" type="button" class="lang-choice-btn" style="padding: 1.4rem 2rem; background: var(--bg-2); border: 2px solid var(--accent); color: var(--ink); border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: 600; -webkit-tap-highlight-color: transparent; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; min-height: 64px;">
+      <span style="font-size: 2rem;">🇬🇧</span>
+      <span>English</span>
+    </button>
+  </div>
+
+  <div style="margin-top: 3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; color: var(--ink-quiet); text-transform: uppercase;">by Mathias Girard / made4game</div>
+</div>
+<style>
+.lang-choice-btn:hover, .lang-choice-btn:active {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+  transform: scale(1.02);
+}
+</style>
+
 <header class="app-header">
-<div class="eyebrow">Sealed Generator · Set 12 · Wilds Unknown</div>
-<h1>Ouvre tes <em>boosters</em></h1>
+<div class="eyebrow" data-i18n="appSubtitle">Sealed Generator · Set 12 · Wilds Unknown</div>
+<h1 data-i18n="appTitle">Ouvre tes <em>boosters</em></h1>
 <div class="signature">by Mathias Girard / made4game</div>
 </header>
 
@@ -1698,7 +1773,7 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 <!-- POOL =================================== -->
 <div class="pool-panel">
 <div class="panel-header">
-<h3>Ma pool sealed</h3>
+<h3 data-i18n="poolTitle">Ma pool sealed</h3>
 <div class="meta" id="poolMeta">72 cartes</div>
 </div>
 <div class="filters">
@@ -1711,11 +1786,11 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 <div class="filter-group" id="costFilters"></div>
 <div class="filter-divider"></div>
 <select id="sortMode" class="sort-select" title="Mode de tri">
-<option value="color">Tri : Couleur</option>
-<option value="cost">Tri : Coût ↑</option>
-<option value="rarity">Tri : Rareté ↓</option>
+<option value="color" data-i18n="sortColor">Tri : Couleur</option>
+<option value="cost" data-i18n="sortCost">Tri : Coût ↑</option>
+<option value="rarity" data-i18n="sortRarity">Tri : Rareté ↓</option>
 </select>
-<input type="text" class="search-box" id="searchBox" placeholder="Recherche...">
+<input type="text" class="search-box" id="searchBox" placeholder="Recherche..." data-i18n="filterSearchPlaceholder">
 </div>
 <div class="card-grid" id="cardGrid"></div>
 </div>
@@ -1724,19 +1799,19 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 <div class="deck-panel">
 <div class="deck-status">
 <div class="deck-counter" id="deckCounter">0</div>
-<div class="deck-counter-label">cartes / 40 minimum</div>
+<div class="deck-counter-label"><span data-i18n="cardsLabel">cartes</span> <span data-i18n="minimum40">/ 40 minimum</span></div>
 <div class="legality-row" id="legalityRow"></div>
 </div>
 
 <div class="deck-stats-tabs">
-<button class="active" data-tab="list">Liste</button>
-<button data-tab="stats">Stats</button>
-<button data-tab="curve">Courbe</button>
+<button class="active" data-tab="list" data-i18n="poolTabList">Liste</button>
+<button data-tab="stats" data-i18n="poolTabStats">Stats</button>
+<button data-tab="curve" data-i18n="poolTabCurve">Courbe</button>
 </div>
 
 <div class="deck-content">
 <div id="tabList" class="tab-content">
-<div class="empty-deck" id="emptyDeck">Ton deck est vide.<br>Clique sur les cartes de ta pool pour les ajouter.</div>
+<div class="empty-deck" id="emptyDeck"><span data-i18n="deckEmpty">Ton deck est vide.</span><br><span data-i18n="deckEmptyHint">Clique sur les cartes de ta pool pour les ajouter.</span></div>
 <div id="deckListContent"></div>
 </div>
 <div id="tabStats" class="tab-content" style="display:none;"></div>
@@ -1747,13 +1822,14 @@ La pool inclut <strong style="color:var(--ink)">la totalite du set Wilds Unknown
 </div>
 
 <div class="deck-actions">
-<button class="btn btn-sm" onclick="autoBuild()" title="Construit automatiquement le deck a partir de la pool actuelle">Auto-build</button>
+<button class="btn btn-sm" onclick="autoBuild()" title="Construit automatiquement le deck a partir de la pool actuelle" data-i18n="btnAutoBuild">Auto-build</button>
+<button class="btn btn-sm play-btn" onclick="playOnDuelsInk()" title="Copie le deck et ouvre Duels.ink pour jouer en ligne" data-i18n="btnPlay">🎮 Jouer sur Duels.ink</button>
 <button class="btn-ghost btn btn-sm" onclick="openScanner('pool')" title="Scanner des cartes physiques avec la camera">📷 Scanner</button>
-<button class="btn-ghost btn btn-sm" onclick="openImportModal()" title="Importer une liste de cartes externe (avancé)">Import</button>
-<button class="btn-ghost btn btn-sm" onclick="clearDeck()">Vider</button>
-<button class="btn-ghost btn btn-sm" onclick="exportDeck()">Exporter</button>
-<button class="btn-ghost btn btn-sm" onclick="printProxy()" title="Imprimer le deck en proxies (PDF)">🖨 Proxy</button>
-<button class="btn-ghost btn btn-sm" onclick="newSealed()">Nouveau</button>
+<button class="btn-ghost btn btn-sm" onclick="openImportModal()" title="Importer une liste de cartes externe (avancé)" data-i18n="btnImportPool">Import</button>
+<button class="btn-ghost btn btn-sm" onclick="clearDeck()" data-i18n="btnEmpty">Vider</button>
+<button class="btn-ghost btn btn-sm" onclick="exportDeck()" data-i18n="btnExport">Exporter</button>
+<button class="btn-ghost btn btn-sm" onclick="printProxy()" title="Imprimer le deck en proxies (PDF)" data-i18n="btnProxy">🖨 Proxy</button>
+<button class="btn-ghost btn btn-sm" onclick="newSealed()" data-i18n="btnNew">Nouveau</button>
 </div>
 
 </div>
@@ -1858,6 +1934,12 @@ Utile pour : tester un deck precis, importer une pool depuis un autre simulateur
 <div class="signature">by Mathias Girard / made4game</div>
 <div>Wilds Unknown · Set 12 Lorcana TCG · Simulation Sealed</div>
 <div style="margin-top: 0.5rem;">Données : LorcanaJSON · Disney Lorcana © Ravensburger / Disney</div>
+<div style="margin-top: 0.8rem;">
+  <a href="#" onclick="event.preventDefault(); resetLanguage();" style="color: var(--ink-quiet); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.15em; text-decoration: underline; cursor: pointer;">Change language · Changer de langue</a>
+  <span style="color: var(--ink-quiet); margin: 0 8px;">·</span>
+  <a href="#" onclick="event.preventDefault(); document.getElementById('frMapInput').click();" style="color: var(--ink-quiet); font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 0.15em; text-decoration: underline; cursor: pointer;" title="Charger un fichier JSON avec noms, images et descriptions FR">Load FR data</a>
+  <input type="file" id="frMapInput" accept=".json,application/json" style="display:none;" onchange="handleFrMapUpload(event)">
+</div>
 </footer>
 
 </div>
@@ -1928,6 +2010,1550 @@ let boostersOpened = 0;
 let currentRevealIdx = -1;
 let activeFilters = { colors: new Set(), types: new Set(), rarities: new Set(), costs: new Set(), search: '', sortMode: 'color' };
 let activeTab = 'list';
+
+// =========================================================================
+// I18N - LANGUE FR / EN
+// =========================================================================
+let currentLang = (function() {
+  try { return localStorage.getItem('lorcana_lang') || null; } catch(e) { return null; }
+})();
+
+const I18N = {
+  fr: {
+    // Header
+    appTitle: 'Ouvre tes <em>boosters</em>',
+    appSubtitle: 'Sealed Generator · Set 12 · Wilds Unknown',
+    // Welcome
+    welcomeTitle: 'Simulation Sealed officiel',
+    welcomeIntro: 'Ouvre 6 boosters de Wilds Unknown et construis ton deck de 40+ cartes selon les règles officielles du format Sealed Lorcana.',
+    btnStartSealed: 'Lancer Sealed',
+    btnOpenBox: 'Open Box',
+    btnImport: 'Importer',
+    btnScanner: '📷 Scanner ma pool reelle → Build',
+    btnNew: 'Nouveau',
+    // Pool view
+    poolTitle: 'Ma pool sealed',
+    poolEmpty: 'Pool vide',
+    poolTabList: 'LISTE',
+    poolTabStats: 'STATS',
+    poolTabCurve: 'COURBE',
+    deckEmpty: 'Ton deck est vide',
+    deckEmptyHint: 'Tap les cartes du pool pour les ajouter',
+    btnAutoBuild: 'Auto-build',
+    btnPlay: '🎮 Jouer sur Duels.ink',
+    btnImportPool: 'Import',
+    btnEmpty: 'Vider',
+    btnExport: 'Exporter',
+    btnProxy: 'Proxy',
+    cardsLabel: 'CARTES',
+    minimum40: '/ 40 minimum',
+    cardsMissing: 'cartes manquantes',
+    // Scanner
+    scannerTitle: 'Scanner camera',
+    scannerReady: 'Pret · Vise le nom de la carte et tap "Capturer"',
+    scannerInit: 'Initialisation...',
+    scannerCapture: '📸 Capturer',
+    scannerFinish: '✓ Terminer · Auto-build',
+    scannerClose: 'Fermer',
+    scannerCounter: 'cartes',
+    scannerOcrRead: 'OCR a lu',
+    scannerChooseRight: 'Choisis la bonne carte ↓',
+    scannerRetry: '↻ Réessayer',
+    // Modal
+    modalAdd: '+ Ajouter au deck',
+    modalRemove: '− Retirer',
+    poolLabel: 'Pool',
+    deckLabel: 'Deck',
+    inkable: 'Encrable',
+    // Filtres
+    filterColor: 'Couleur',
+    filterType: 'Type',
+    filterRarity: 'Rareté',
+    filterCost: 'Coût',
+    filterSearchPlaceholder: 'Recherche...',
+    sortColor: 'Tri : couleur',
+    sortCost: 'Tri : coût',
+    sortRarity: 'Tri : rareté',
+    // Misc
+    langToggle: 'EN',
+    langTooltip: 'Switch to English',
+  },
+  en: {
+    appTitle: 'Open your <em>boosters</em>',
+    appSubtitle: 'Sealed Generator · Set 12 · Wilds Unknown',
+    welcomeTitle: 'Official Sealed Simulator',
+    welcomeIntro: 'Open 6 Wilds Unknown boosters and build your 40+ card deck according to official Lorcana Sealed format rules.',
+    btnStartSealed: 'Start Sealed',
+    btnOpenBox: 'Open Box',
+    btnImport: 'Import',
+    btnScanner: '📷 Scan my real pool → Build',
+    btnNew: 'New',
+    poolTitle: 'My sealed pool',
+    poolEmpty: 'Pool empty',
+    poolTabList: 'LIST',
+    poolTabStats: 'STATS',
+    poolTabCurve: 'CURVE',
+    deckEmpty: 'Your deck is empty',
+    deckEmptyHint: 'Tap pool cards to add them',
+    btnAutoBuild: 'Auto-build',
+    btnPlay: '🎮 Play on Duels.ink',
+    btnImportPool: 'Import',
+    btnEmpty: 'Clear',
+    btnExport: 'Export',
+    btnProxy: 'Proxy',
+    cardsLabel: 'CARDS',
+    minimum40: '/ 40 minimum',
+    cardsMissing: 'cards missing',
+    scannerTitle: 'Camera scanner',
+    scannerReady: 'Ready · Aim at card name and tap "Capture"',
+    scannerInit: 'Initializing...',
+    scannerCapture: '📸 Capture',
+    scannerFinish: '✓ Done · Auto-build',
+    scannerClose: 'Close',
+    scannerCounter: 'cards',
+    scannerOcrRead: 'OCR read',
+    scannerChooseRight: 'Choose the right card ↓',
+    scannerRetry: '↻ Retry',
+    modalAdd: '+ Add to deck',
+    modalRemove: '− Remove',
+    poolLabel: 'Pool',
+    deckLabel: 'Deck',
+    inkable: 'Inkable',
+    filterColor: 'Color',
+    filterType: 'Type',
+    filterRarity: 'Rarity',
+    filterCost: 'Cost',
+    filterSearchPlaceholder: 'Search...',
+    sortColor: 'Sort: color',
+    sortCost: 'Sort: cost',
+    sortRarity: 'Sort: rarity',
+    langToggle: 'FR',
+    langTooltip: 'Passer en français',
+  }
+};
+
+// Couleurs traduites
+const COLOR_NAMES = {
+  fr: { Amber:'Ambre', Amethyst:'Améthyste', Emerald:'Émeraude', Ruby:'Rubis', Sapphire:'Saphir', Steel:'Acier' },
+  en: { Amber:'Amber', Amethyst:'Amethyst', Emerald:'Emerald', Ruby:'Ruby', Sapphire:'Sapphire', Steel:'Steel' }
+};
+// Raretes traduites
+const RARITY_NAMES = {
+  fr: { Common:'Commune', Uncommon:'Peu commune', Rare:'Rare', 'Super Rare':'Super Rare', Legendary:'Légendaire', Epic:'Epique', Enchanted:'Enchantée', Iconic:'Iconique' },
+  en: { Common:'Common', Uncommon:'Uncommon', Rare:'Rare', 'Super Rare':'Super Rare', Legendary:'Legendary', Epic:'Epic', Enchanted:'Enchanted', Iconic:'Iconic' }
+};
+// Types traduits
+const TYPE_NAMES = {
+  fr: { Character:'Personnage', Action:'Action', Item:'Objet', Location:'Lieu', Song:'Chant' },
+  en: { Character:'Character', Action:'Action', Item:'Item', Location:'Location', Song:'Song' }
+};
+
+// Mapping noms de cartes EN -> FR pour Set 12 Wilds Unknown
+// Source : LorcanaJSON FR (recupere via fetch_fr_names.py)
+// Total : 205 cartes mappees - couvre l'integralite du Set 12
+const CARD_NAMES_FR = {
+  "Gosalyn Mallard - The Quiverwing Quack": "Poussinette Colvert - Poussin des Bois",
+  "Monterey Jack - Watchful Ranger": "Jack le Costaud - Ranger aux aguets",
+  "Woody - Waiting for a Friend": "Woody - Attend un ami",
+  "Dale - Excited Friend": "Tac - Ami enthousiaste",
+  "Pedro Madrigal - Family Patriarch": "Pedro Madrigal - Patriarche de la famille",
+  "Agustin Madrigal - Exceptionally Kind": "Agustín Madrigal - D'une gentillesse exceptionnelle",
+  "Alan-a-Dale - Loyal Bard": "Adam de la Halle - Barde loyal",
+  "Prince Eric - Noble Swordsman": "Prince Eric - Noble épéiste",
+  "Dolores Madrigal - Hears Everything": "Dolores Madrigal - Entend tout",
+  "Rex - Protective Dinosaur": "Rex - Dinosaure protecteur",
+  "Hamm - Piggy Bank": "Bayonne - Tirelire cochon",
+  "Monterey Jack - Hypnotized by Cheese": "Jack le Costaud - Hypnotisé par le fromage",
+  "Bo Peep - Caring Shepherd": "Bo, la bergère - Bergère attentionnée",
+  "Chip - Retrieval Expert": "Tic - Expert en récupération",
+  "Woody - Jungle Guide": "Woody - Guide de la jungle",
+  "Isabela Madrigal - Such a Lovely Voice": "Isabela Madrigal - Une si jolie voix",
+  "Bullseye - Loyal Horse": "Pile-Poil - Fidèle destrier",
+  "Ariel - Curious Traveler": "Ariel - Voyageuse curieuse",
+  "Isabela Madrigal - Caring Cultivator": "Isabela Madrigal - Jardinière attentionnée",
+  "Jessie - Lively Cowgirl": "Jessie - Cowgirl énergique",
+  "Woody - Leader of the Toys": "Woody - Meneur des Jouets",
+  "Dale - Ready for His Shot": "Tac - Prêt à tenter sa chance",
+  "The Prince - Searching for His Love": "Le Prince - Cherche son amour",
+  "Julieta Madrigal - Caring Baker": "Julieta Madrigal - Boulangère attentionnée",
+  "Pluto - Vigilant Traveler": "Pluto - Voyageur vigilant",
+  "Mickey Mouse - Expedition Leader": "Mickey Mouse - Chef d'expédition",
+  "Chip - Team Player": "Tic - Joue en équipe",
+  "Ranger Team-Up": "Les rangers font équipe",
+  "This Growing Pressure": "L'énorme pression",
+  "You've Got a Friend in Me": "Je suis ton ami",
+  "Metamorphosis": "Métamorphose",
+  "When You Need Help, Just Call": "Criez au secours et ils rappliquent",
+  "Safety Rope": "Corde de sécurité",
+  "Andy's Room - Home Base": "Chambre d'Andy - Camp de base",
+  "Mor'du - Wicked with Pride": "Mor'du - Méchant et fier de l'être",
+  "Alma Madrigal - Leading the Way": "Alma Madrigal - Montre la voie",
+  "Snow White - Merry as the Morning": "Blanche-Neige - Rayonnante comme le matin",
+  "Dopey - Drawn to Music": "Simplet - Attiré par la musique",
+  "Bashful - Riding the Rails": "Timide - Roule sur les rails",
+  "Doc - Taking Notes": "Prof - Prend des notes",
+  "Grumpy - Soreheaded Miner": "Grincheux - Mineur à la tête dure",
+  "Sneezy - Startlingly Loud": "Atchoum - Étonnamment bruyant",
+  "Happy - Joyful Adventurer": "Joyeux - Aventurier jovial",
+  "Sleepy - Deep Sleeper": "Dormeur - Dans un profond sommeil",
+  "Alma Madrigal - Heart of the Family": "Alma Madrigal - Cœur de la famille",
+  "Frozone - Super Slick": "Frozone - Super classe",
+  "Will o' the Wisp - Forest Spirit": "Feux follets - Esprit de la forêt",
+  "Violet Parr - Learning New Powers": "Violette Parr - Apprend de nouveaux pouvoirs",
+  "Mrs. Incredible - Super Stretchy": "Mme Indestructible - Super extensible",
+  "Hamish, Hubert & Harris - Making Mischief": "Hamish, Hubert et Harris - Font des bêtises",
+  "Elinor - Bespelled Queen": "Elinor - Reine ensorcelée",
+  "Mickey Mouse - Experienced Traveler": "Mickey Mouse - Voyageur expérimenté",
+  "Mirage - Super Recruiter": "Mirage - Recruteuse de Supers",
+  "Edna Mode - Fashion Designer": "Edna Mode - Créatrice de mode",
+  "Maleficent - Imperious Traveler": "Maléfique - Voyageuse impérieuse",
+  "Pepa Madrigal - Calm Before the Storm": "Pepa Madrigal - Calme avant la tempête",
+  "Mor'du - Savage Cursed Prince": "Mor'du - Prince maudit sauvage",
+  "Alma Madrigal - Keeper of the Flame": "Alma Madrigal - Gardienne de la flamme",
+  "Frozone - Super Cool": "Frozone - Super Cool",
+  "Luisa Madrigal - Confident Climber": "Luisa Madrigal - Grimpeuse sûre d'elle",
+  "Dash Parr - Lava Runner": "Flèche Parr - Court sur la lave",
+  "Luisa Madrigal - Pushing Through": "Luisa Madrigal - Pousse jusqu'au bout",
+  "Super Relocation Program": "Programme de réinsertion des Supers",
+  "Right Behind You": "Tous derrière toi",
+  "Don't Be Nervous": "Ne sois pas si nerveux",
+  "Super Suit": "Super-costume",
+  "DunBroch Family Tapestry": "Tapisserie familiale de DunBroch",
+  "Ring of Stones - Place of Legends": "Cercle de pierres - Lieu de légendes",
+  "Merida - Defiant Daughter": "Merida - Fille défiante",
+  "Hamish, Hubert & Harris - Troublemaking Triplets": "Hamish, Hubert et Harris - Triplés turbulents",
+  "Young MacGuffin - Soft-Spoken Son": "Le fils MacGuffin - Fils discret",
+  "Tod - Nimble Fox": "Rox - Renard agile",
+  "Helga Sinclair - No Backup Needed": "Helga Sinclair - N'a pas besoin de renfort",
+  "The Witch - Wily Woodcarver": "La Sorcière - Sculptrice rusée",
+  "The Queen - Evil Ruler": "La Reine - Souveraine malfaisante",
+  "Buzz Lightyear - Space Ranger": "Buzz l'Éclair - Ranger de l'espace",
+  "RC - Remote-Controlled Car": "Karting - Voiture télécommandée",
+  "Lord MacGuffin - Clever Swordsman": "Seigneur MacGuffin - Épéiste brillant",
+  "Lenny - Toy Binoculars": "Lenny - Jumelles jouet",
+  "Gaetan Moliere - Clever Burrower": "Gaëtan Molière - Fouisseur brillant",
+  "Peter Pan - Searching Far and Wide": "Peter Pan - Cherche par monts et par vaux",
+  "Milo Thatch - Getting His Hands Dirty": "Milo Thatch - Se salit les mains",
+  "Alien - True Believer": "Alien - Vrai croyant",
+  "Donald Duck - Distracted Traveler": "Donald - Voyageur distrait",
+  "Buzz Lightyear - On the Way": "Buzz l'Éclair - J'arrive",
+  "Elinor - Renowned Diplomat": "Elinor - Diplomate renommée",
+  "Lyle Tiberius Rourke - Adventurer for Hire": "Lyle Tiberius Rourke - Aventurier à engager",
+  "Joshua Sweet - Field Surgeon": "Amadou Gentil - Chirurgien de terrain",
+  "Merida - Gifted Archer": "Merida - Archère talentueuse",
+  "The Queen - Devious Disguise": "La Reine - Déguisement sournois",
+  "Buzz Lightyear - Jungle Ranger": "Buzz l'Éclair - Ranger de la jungle",
+  "Cruella De Vil - Judgmental Traveler": "Cruella d'Enfer - Voyageuse critique",
+  "Helga Sinclair - Prepared for Anything": "Helga Sinclair - Prête à toute éventualité",
+  "The Huntsman - On the Queen's Orders": "Le chasseur - Aux ordres de la Reine",
+  "Strange Things": "Étrange Bazar",
+  "Sabotage": "Sabotage",
+  "The Family Scattered": "Famille dispersée",
+  "Buzz's Arm": "Bras de Buzz",
+  "The Claw": "Le Grappin",
+  "Gyro-Evac": "Gyro-Evac",
+  "Merida's Bow": "Arc de Merida",
+  "Pizza Planet - Spaceport": "Pizza Planet - Base de lancement",
+  "Lyle Tiberius Rourke - Crystallized Commander": "Lyle Tiberius Rourke - Commandant cristallisé",
+  "Mr. Incredible - Bob Parr": "M. Indestructible - Bob Parr",
+  "Lyle Tiberius Rourke - Looking for His Moment": "Lyle Tiberius Rourke - Attend son heure",
+  "Pegasus - Searching High and Low": "Pégase - Cherche entre ciel et terre",
+  "Audrey Ramirez - Gutsy Mechanic": "Audrey Ramirez - Mécanicienne qui a du cran",
+  "Milo Thatch - Courageous Explorer": "Milo Thatch - Explorateur courageux",
+  "Zeus - Defiant God": "Zeus - Dieu intraitable",
+  "Preston Whitmore - Expedition Financier": "Preston Whitmore - Financeur de l'expédition",
+  "Jingle Joe - Sid's Toy": "Jingle Joe - Jouet de Sid",
+  "Wind-Up Frog - Sid's Toy": "La grenouille - Jouet de Sid",
+  "Roller Bob - Sid's Toy": "Roller Bob - Jouet de Sid",
+  "Hand-in-the-Box - Sid's Toy": "La Main dans la Boîte - Jouet de Sid",
+  "Daisy Duck - Trendy Traveler": "Daisy - Voyageuse tendance",
+  "Copper - Big Dog": "Rouky - Grand chien",
+  "Jebidiah Farnsworth - Cookie": "Jebidiah Farnsworth - Cookie",
+  "Dash Parr - Super Speedy": "Flèche Parr - Super rapide",
+  "Babyhead - Leader of Sid's Toys": "Tête de bébé - Chef des jouets de Sid",
+  "Bouncing Ducky - Sid's Toy": "Canard - Jouet de Sid",
+  "Jack-Jack Parr - Incredible Potential": "Jack-Jack Parr - Potentiellement indestructible",
+  "Queen of Hearts - Impatient Traveler": "La Reine de Cœur - Voyageuse impatiente",
+  "Hercules - Young Rescuer": "Hercule - Jeune sauveur",
+  "Vincenzo Santorini - On the Run": "Vincenzo Santorini - En fuite",
+  "The Leviathan - Guardian of Atlantis": "Le Léviathan - Gardien de l'Atlantide",
+  "Sid Phillips - Toy Surgeon": "Sid Phillips - Chirurgien de jouet",
+  "Mr. Incredible - Super Strong": "M. Indestructible - Super fort",
+  "Pterodactyl Janie Doll - Sid's Toy": "La poupée ptérodactyle - Jouet de Sid",
+  "Inner Strength": "Force intérieure",
+  "Firefly Swarm": "Essaim de lucioles",
+  "Like a Bird in the Sky": "Je pourrais m'envoler",
+  "Hero Work": "Super-héroïsme",
+  "Dangerous Plan": "Plan dangereux",
+  "Amazu's Inkcaster": "Invocateur d'Encre d'Amazu",
+  "Remote Inklands - Desert Ruins": "Terres d'encres reculées - Ruines du désert",
+  "Leviathan's Lair - Dangerous Ground": "Antre du Léviathan - Terrain dangereux",
+  "Robin Hood - Desert Wanderer": "Robin des Bois - Vagabond du désert",
+  "Prince Charming - Searching for Answers": "Prince charmant - Cherche des réponses",
+  "Merryweather - Feisty Fairy": "Pimprenelle - Fée fougueuse",
+  "Fauna - Good-Natured Fairy": "Pâquerette - Fée débonnaire",
+  "Flora - Strong-Willed Fairy": "Flora - Fée à la volonté de fer",
+  "Mirabel Madrigal - Resourceful Daughter": "Mirabel Madrigal - Fille pleine de ressources",
+  "Syndrome - Evil Inventor": "Syndrome - Inventeur machiavélique",
+  "Kida - Guardian of the Path": "Kida - Gardienne du passage",
+  "Gadget Hackwrench - Resourceful Mechanic": "Gadget - Mécanicienne pleine de ressources",
+  "Norton Nimnul - Misanthropic Genius": "Professeur Nimnul - Génie misanthrope",
+  "Gadget Hackwrench - Finder of Lost Parts": "Gadget - Chercheuse de pièces égarées",
+  "Zipper - Tiny Helper": "Ruzor - Assistant minuscule",
+  "Edna Mode - Super Suit Designer": "Edna Mode - Créatrice de Super-costume",
+  "Zipper - Big Helper": "Ruzor - Assistant majuscule",
+  "Luisa Madrigal - No Pressure": "Luisa Madrigal - Sans pression",
+  "Dr. Sara Bellum - Head of Research": "Irma Tièregrise - Tête pensante du laboratoire",
+  "Isabela Madrigal - Perfectly in Control": "Isabela Madrigal - En parfait contrôle",
+  "Bruno Madrigal - Oasis Oracle": "Bruno Madrigal - Oracle de l'oasis",
+  "Cinderella - Resourceful Traveler": "Cendrillon - Voyageuse pleine de ressources",
+  "Bruno Madrigal - Seeing the Future": "Bruno Madrigal - Voit dans le futur",
+  "Kida - Discovering the Unknown": "Kida - Découvre l'inconnu",
+  "Kashekim - Wise King": "Kashekim - Roi sage",
+  "Minnie Mouse - Practical Traveler": "Minnie - Voyageuse à l'esprit pratique",
+  "Kida - Crystal Scion": "Kida - Élue du Crystal",
+  "Ursula - Deal Maker": "Ursula - Conclut un marché",
+  "Someone Will Lose His Head": "On leur coupera la tête",
+  "What Else Can I Do?": "Que sais-je faire d'autre ?",
+  "Escape Plan": "Plan d'évasion",
+  "Salvage Operation": "Réparations de fortune",
+  "Julieta's Arepas": "Arepas de Julieta",
+  "Ranger Plane": "Socissoplane",
+  "Gadget's Goggles": "Lunettes de Gadget",
+  "Shepherd's Journal": "Le Manuscrit du Berger",
+  "Casa Madrigal - Courtyard": "Casa Madrigal - Patio",
+  "Pocahontas - Steadfast Traveler": "Pocahontas - Voyageuse infatigable",
+  "Syndrome - Out for Revenge": "Syndrome - En quête de vengeance",
+  "Omnidroid - V.8": "Omnidroïde - V.8",
+  "Angus - Mighty Horse": "Angus - Puissant cheval",
+  "Fergus - King of DunBroch": "Fergus - Roi de DunBroch",
+  "Wee Dingwall - Scrappy Lad": "Le Petit Dingwall - Garçon bagarreur",
+  "Incrediboy - Buddy Pine": "Indestructiboy - Buddy Pine",
+  "Violet Parr - At Wits' End": "Violette Parr - À bout de nerfs",
+  "Mrs. Incredible - Helen Parr": "Mme Indestructible - Hélène Parr",
+  "Young Macintosh - Proud Son": "Le fils Macintosh - Fils fier",
+  "Lord Macintosh - Wiry and High-Strung": "Seigneur Macintosh - Mince et nerveux",
+  "Fat Cat - Felonious Feline": "Catox - Félon félin",
+  "Rat Capone - Rodent Gangster": "Rat Capone - Rongeur Gangster",
+  "Omnidroid - V.9": "Omnidroïde - V.9",
+  "Mr. Incredible - Taking Out the Trash": "M. Indestructible - Élimine les déchets",
+  "Lord Dingwall - Bullheaded": "Seigneur Dingwall - Têtu comme une mule",
+  "Fat Cat - Criminal Businessman": "Catox - Homme d'affaires criminel",
+  "Maudie - Exasperated Nursemaid": "Maude - Nourrice exaspérée",
+  "Goofy - Determined Traveler": "Dingo - Voyageur déterminé",
+  "Omnidroid - V.10": "Omnidroïde - V.10",
+  "Merida - Formidable Archer": "Merida - Archère redoutable",
+  "John Smith - Skillful Explorer": "John Smith - Explorateur compétent",
+  "Gizmoduck - Duckburg Defender": "Robotik - Défenseur de Donaldville",
+  "Fergus - Outpost Builder": "Fergus - Bâtisseur d'avant-postes",
+  "Mrs. Incredible - Determined Rescuer": "Mme Indestructible - Sauveteuse déterminée",
+  "Diablo - Stone Servant": "Diablo - Serviteur de pierre",
+  "Three Arrows": "Triple flèche",
+  "Card Advantage": "Cartes bonus",
+  "Touch the Sky": "Vers le ciel",
+  "Plunger Crossbow": "Ventouse au harpon",
+  "Syndrome's Remote": "Télécommande de Syndrome",
+  "Club Door": "Porte du Club",
+  "Fat Cat's Club - Seedy Headquarters": "Club de Catox - Repaire malfamé",
+  "The Island of Nomanisan - Syndrome's Headquarters": "Île de Nomanisan - Quartier général de Syndrome",
+  "Like A Bird In the Sky": "Je pourrais m'envoler"
+};
+
+// Helper : recupere le texte traduit (fallback EN si manquant)
+function t(key) {
+  const lang = (currentLang && I18N[currentLang]) ? currentLang : 'fr';
+  return I18N[lang][key] || I18N.en[key] || key;
+}
+
+// Mapping FR enrichi : name + image + text
+// Rempli via le bouton "Load FR data" en bas de page
+// Format: { "EN name": { name: "FR name", image: "URL FR", text: "Texte FR" } }
+let CARD_DATA_FR = {
+  "Gosalyn Mallard - The Quiverwing Quack": {
+    "name": "Poussinette Colvert - Poussin des Bois",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/1_8cda922074bdbbe4d87d37f124dfef7738fba181.jpg",
+    "text": "INTERVENTION HÉROÏQUE Lorsque vous jouez ce personnage,\nvous pouvez choisir un personnage coûtant 2 ou moins et le\nredresser. Si vous le faites, ce personnage-là ne peut ni être\nenvoyé à l'aventure ni défier pour le reste de ce tour."
+  },
+  "Monterey Jack - Watchful Ranger": {
+    "name": "Jack le Costaud - Ranger aux aguets",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/2_98c3accd344ec313c0c176fcbf73564757fd1e64.jpg",
+    "text": "VUE DU CIEL Lorsque vous jouez ce personnage, vous\npouvez révéler la carte du dessus de votre pioche. S'il\ns'agit d'une carte Personnage, vous pouvez l'ajouter à\nvotre main. Sinon, placez-la sous votre pioche."
+  },
+  "Woody - Waiting for a Friend": {
+    "name": "Woody - Attend un ami",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/205_7ffb1ad47d3f880440e2c6562045643edfd0c7b3.jpg"
+  },
+  "Dale - Excited Friend": {
+    "name": "Tac - Ami enthousiaste",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/4_464a265d16964bcd35e42b5cc10a0dbbfaa33552.jpg",
+    "text": "REGARDE CE QUE J'AI TROUVÉ Tant que vous avez\nun personnage nommé Tic en jeu, ce personnage-ci\ngagne +1 ◊."
+  },
+  "Pedro Madrigal - Family Patriarch": {
+    "name": "Pedro Madrigal - Patriarche de la famille",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/5_1eec78733702b8304b77d4968494dbee4345006c.jpg",
+    "text": "VOYAGE DIFFICILE Ce personnage entre en jeu\navec 1 dommage.\nFAMILLE DÉVOUÉE Lorsque vous jouez ce\npersonnage, si vous avez un autre personnage\nMadrigal en jeu, vous pouvez retirer jusqu'à 1\ndommage de ce personnage-ci."
+  },
+  "Agustin Madrigal - Exceptionally Kind": {
+    "name": "Agustín Madrigal - D'une gentillesse exceptionnelle",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/6_c9376cda549800ca07d547f0f30e1b5d987c948b.jpg",
+    "text": "Soutien (Lorsque ce personnage est envoyé à\nl'aventure, vous pouvez ajouter sa ¤ à celle d'un\nautre personnage au choix pour le reste de ce tour.)"
+  },
+  "Alan-a-Dale - Loyal Bard": {
+    "name": "Adam de la Halle - Barde loyal",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/7_a415f0fb954b4cc0601cd9d723532bb9a7b70de6.jpg",
+    "text": "Mélomane 4 (Ce personnage est considéré comme ayant\nun coût de 4 pour chanter des chansons.)"
+  },
+  "Prince Eric - Noble Swordsman": {
+    "name": "Prince Eric - Noble épéiste",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/8_963c6a2571b506cfa265a2ce2bdce9a027e2d1f4.jpg"
+  },
+  "Dolores Madrigal - Hears Everything": {
+    "name": "Dolores Madrigal - Entend tout",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/9_6fb7280d407f4d657af8d3ff831d93de6ed3ca65.jpg",
+    "text": "AUCUN SECRET Lorsque vous jouez ce personnage,\nchoisissez un adversaire et regardez sa main."
+  },
+  "Rex - Protective Dinosaur": {
+    "name": "Rex - Dinosaure protecteur",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/206_d650a406f32ede3bb22a7d55d28509df89693f6d.jpg",
+    "text": "Rempart (Ce personnage peut entrer en jeu épuisé.\nLorsqu'il défie l'un de vos personnages, un personnage\nadverse doit, s'il le peut, choisir l'un de vos personnages\navec Rempart.)\nFUYEZ ! Durant le tour de vos adversaires, lorsque\nce personnage est banni, gagnez 1 éclat de Lore."
+  },
+  "Hamm - Piggy Bank": {
+    "name": "Bayonne - Tirelire cochon",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/11_bc6d74254752d94fd34f34713608381775e4c868.jpg",
+    "text": "PETITE MONNAIE ⟳ — Le prochain personnage que\nvous jouez ce tour-ci vous coûte 1 ⬡ de moins."
+  },
+  "Monterey Jack - Hypnotized by Cheese": {
+    "name": "Jack le Costaud - Hypnotisé par le fromage",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/12_088c55cf7a42f5646d89c3f207814574550d8278.jpg",
+    "text": "ROMPRE LA TRANSE Ce personnage ne peut pas\nêtre envoyé à l'aventure sauf si vous avez un\npersonnage avec 4 ⛉ ou plus en jeu."
+  },
+  "Bo Peep - Caring Shepherd": {
+    "name": "Bo, la bergère - Bergère attentionnée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/13_c3d992c28094db82674609b11827fc3848e96d9b.jpg",
+    "text": "QUE QUELQU'UN FASSE QUELQUE CHOSE ! Vos\npersonnages nommés Woody gagnent Rempart.\n(Lorsqu'il défie l'un de vos personnages, un\npersonnage adverse doit, s'il le peut, choisir l'un de\nvos personnages avec Rempart.)"
+  },
+  "Chip - Retrieval Expert": {
+    "name": "Tic - Expert en récupération",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/14_2a650ec61acc5ecf5daaaeec2cb6c2b781961427.jpg",
+    "text": "TE VOILÀ ! Lorsque vous jouez ce personnage,\nvous pouvez renvoyer dans votre main une carte\nPersonnage ayant 4 ⛉ ou plus de votre défausse.\nASSISTANCE AMICALE Vos personnages nommés\nTac gagnent +1 ⛉."
+  },
+  "Woody - Jungle Guide": {
+    "name": "Woody - Guide de la jungle",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/54_369419183428510f0041e727ed0e43ddfe4177d8.jpg",
+    "text": "Alter 3 ⬡ (Vous pouvez payer 3 ⬡ pour jouer ce personnage\nsur l'un de vos personnages nommé Woody.)\nALLONS-Y ! Chaque fois que ce personnage est envoyé à\nl'aventure, piochez une carte. Ensuite, vous pouvez jouer\ngratuitement un personnage coûtant 2 ou moins.\nQUE TOUT LE MONDE SE RASSEMBLE Vos autres personnages\nJouet gagnent +1 ⛉."
+  },
+  "Isabela Madrigal - Such a Lovely Voice": {
+    "name": "Isabela Madrigal - Une si jolie voix",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/207_958adb64e4e01848eb91ca74baf3e4f3a3781106.jpg",
+    "text": "Mélomane 5 (Ce personnage est considéré comme\nayant un coût de 5 pour chanter des chansons.)\nNOUVEAU MOTIF Lorsque vous jouez ce personnage,\nsi vous avez retiré 1 dommage ou plus de l'un de vos\npersonnages ce tour-ci, gagnez 1 éclat de Lore."
+  },
+  "Bullseye - Loyal Horse": {
+    "name": "Pile-Poil - Fidèle destrier",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/17_ee4ac43ef6d879150359367b396a5675fa346464.jpg",
+    "text": "EN SELLE Jouer ce personnage vous coûte 1 ⬡ de\nmoins si vous avez un personnage nommé Woody ou\nJessie en jeu."
+  },
+  "Ariel - Curious Traveler": {
+    "name": "Ariel - Voyageuse curieuse",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/18_a0f6612563e6169d68fcf9e734ca2dd0e0a14dff.jpg",
+    "text": "TERRAIN CONNU Chaque fois que ce personnage est envoyé\nà l'aventure, si vous avez joué un autre personnage ce tour-ci,\nchoisissez un personnage adverse qui ne peut pas défier et doit\nêtre envoyé à l'aventure durant son prochain tour, si possible."
+  },
+  "Isabela Madrigal - Caring Cultivator": {
+    "name": "Isabela Madrigal - Jardinière attentionnée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/224_41a9b1185ffed01dfe4ecdb5219ae40505cca57b.jpg",
+    "text": "Alter 4 ⬡\nPARFAITE À TOUS NIVEAUX Chaque fois que\nvous retirez des dommages de l'un de vos\npersonnages, gagnez 1 éclat de Lore pour\nchaque dommage retiré."
+  },
+  "Jessie - Lively Cowgirl": {
+    "name": "Jessie - Cowgirl énergique",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/223_dfaea2db89963fcc55b44812de586af30abcbc88.jpg",
+    "text": "PARTIE D'UNE VRAIE FAMILLE Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez 2 autres personnages\nJouet ou plus en jeu, vous pouvez piocher une carte.\nYODEL-AY-HEE-HOO! Chaque fois que vous payez 2 ⬡ ou\nmoins pour jouer une carte, choisissez un personnage\nadverse qui subit -1 ¤ jusqu'au début de votre prochain tour."
+  },
+  "Woody - Leader of the Toys": {
+    "name": "Woody - Meneur des Jouets",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/21_d727496d43ad085e0c16a704ad319654821130f9.jpg",
+    "text": "RENTRONS À LA MAISON Lorsque vous jouez ce\npersonnage, regardez les 4 cartes du dessus de votre\npioche. Vous pouvez révéler une carte Personnage\nJouet ou une carte Lieu nommée Chambre d'Andy\nparmi elles et l'ajouter à votre main. Placez les autres\ncartes sous votre pioche, dans l'ordre de votre choix."
+  },
+  "Dale - Ready for His Shot": {
+    "name": "Tac - Prêt à tenter sa chance",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/22_6f70c98a2ca23be2c28409e4e4b2f017044f04ae.jpg",
+    "text": "ARMURE À POINTES Durant un défi, vos personnages\ninfligent des dommages avec leur ⛉ à la place de\nleur ¤."
+  },
+  "The Prince - Searching for His Love": {
+    "name": "Le Prince - Cherche son amour",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/23_b79d22ff3fbd8bf7330fd3061e3395c6dd3887b1.jpg"
+  },
+  "Julieta Madrigal - Caring Baker": {
+    "name": "Julieta Madrigal - Boulangère attentionnée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/24_517e9151570ccdf2bf88d20b45e7ec97868357fd.jpg",
+    "text": "RECETTE RÉGÉNÉRANTE Lorsque vous jouez ce\npersonnage et chaque fois qu'il est envoyé à\nl'aventure, vous pouvez choisir un personnage ou un\nlieu et lui retirer 1 dommage."
+  },
+  "Pluto - Vigilant Traveler": {
+    "name": "Pluto - Voyageur vigilant",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/25_bbe06a917a3f82e12b9e1a516e140f9e037ecb4a.jpg",
+    "text": "ATTENTION AU CHIEN Lorsque ce personnage est envoyé à\nl'aventure, si vous avez joué un autre personnage ce tour-ci,\nchoisissez un personnage adverse qui subit -1 ¤ jusqu'au\ndébut de votre prochain tour."
+  },
+  "Mickey Mouse - Expedition Leader": {
+    "name": "Mickey Mouse - Chef d'expédition",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/26_c90d69048fe157f249fa7014ce05ce913057ef71.jpg",
+    "text": "LONG PÉRIPLE Ce personnage peut entrer en jeu épuisé.\nSENTIER SECRET Tant que ce personnage est épuisé,\nchaque fois que l'un de vos autres personnages est\nenvoyé à l'aventure, choisissez un personnage adverse\nqui subit -2 ¤ jusqu'au début de votre prochain tour."
+  },
+  "Chip - Team Player": {
+    "name": "Tic - Joue en équipe",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/27_ecbf1f873647f3174750cc0ce13274f30064c756.jpg",
+    "text": "DÉBROUILLARDISE DU RANGER Lorsque vous jouez\nce personnage, si vous avez un autre personnage\nayant 4 ⛉ ou plus en jeu, vous pouvez piocher\nune carte."
+  },
+  "Ranger Team-Up": {
+    "name": "Les rangers font équipe",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/28_64ad590f900bcab3e10ec01be073268410940777.jpg",
+    "text": "Choisissez un personnage qui gagne autant de ¤ que\nsa ⛉ pour le reste de ce tour."
+  },
+  "This Growing Pressure": {
+    "name": "L'énorme pression",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/29_2ba85d0a9c2250d0483ddcd03b3fd2d9e94e081a.jpg",
+    "text": "(Vous pouvez ⟳ un personnage coûtant 3 ou plus pour\nchanter cette chanson gratuitement.)\nChoisissez un personnage adverse qui ne peut pas\ndéfier et doit être envoyé à l'aventure durant son\nprochain tour, si possible. Piochez une carte."
+  },
+  "You've Got a Friend in Me": {
+    "name": "Je suis ton ami",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/225_ff6e8c1d5c4157013538cf9d0974b73597079022.jpg",
+    "text": "Regardez les 4 cartes du dessus de votre pioche. Vous pouvez\nrévéler jusqu'à 2 cartes Personnage Jouet parmi elles et\nles ajouter à votre main. Placez les autres cartes sous votre\npioche, dans l'ordre de votre choix."
+  },
+  "Metamorphosis": {
+    "name": "Métamorphose",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/31_42e766853f890341e1f7c5af70440663f63772db.jpg",
+    "text": "Jouez gratuitement un personnage de votre défausse via\nsa capacité Alter."
+  },
+  "When You Need Help, Just Call": {
+    "name": "Criez au secours et ils rappliquent",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/32_e767bac94028a70c58164254e93d72bac1b9a426.jpg",
+    "text": "(Vous pouvez ⟳ un personnage coûtant 3 ou plus pour\nchanter cette chanson gratuitement.)\nSi un adversaire a plus de personnages en jeu que\nvous, vous pouvez jouer gratuitement un personnage\ncoûtant 4 ou moins."
+  },
+  "Safety Rope": {
+    "name": "Corde de sécurité",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/33_784b8ef927cf7ed67fa4378cbc325a3ccc799a3e.jpg",
+    "text": "ACCROCHE-TOI ! Lorsque vous jouez cet objet, vous\npouvez placer sur votre pioche une carte Personnage\nde votre défausse.\nRANGE ÇA À la fin de votre tour, vous pouvez bannir\ncet objet pour piocher une carte."
+  },
+  "Andy's Room - Home Base": {
+    "name": "Chambre d'Andy - Camp de base",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/34_68028eb2b6dcb9a807543c1a3fe935f9c633a565.jpg",
+    "text": "LE PRÉFÉRÉ D'ANDY Tant que vous n'avez qu'un seul personnage sur ce\nlieu, ce personnage gagne +2 ⛉ et +1 ◊."
+  },
+  "Mor'du - Wicked with Pride": {
+    "name": "Mor'du - Méchant et fier de l'être",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/35_a22e8812d4a50be5342fc8dabd0b7e11a291bb62.jpg",
+    "text": "Charge (Ce personnage peut défier le tour où il\nest joué.)"
+  },
+  "Alma Madrigal - Leading the Way": {
+    "name": "Alma Madrigal - Montre la voie",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/36_251b88f1198287b6c2908c400e071ef440262e34.jpg",
+    "text": "PROTÉGER LA FAMILLE Lorsque vous jouez ce\npersonnage, si vous avez un autre personnage\nMadrigal en jeu, vous pouvez choisir un personnage\nadverse et l'épuiser."
+  },
+  "Snow White - Merry as the Morning": {
+    "name": "Blanche-Neige - Rayonnante comme le matin",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/37_2561385ef1df47ae44d7b2702daf7d2523a68951.jpg",
+    "text": "APPEL DU CLAIRON Chaque fois que ce personnage\nest envoyé à l'aventure, vous pouvez choisir l'un de vos\npersonnages Sept Nains et le renvoyer dans votre main\npour piocher une carte.\nJAMAIS OUBLIÉE Durant le tour de vos adversaires,\nlorsque ce personnage est banni via un défi, renvoyez\ncette carte dans votre main."
+  },
+  "Dopey - Drawn to Music": {
+    "name": "Simplet - Attiré par la musique",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/38_1e960e72680cb81ad96445ed3ba5c6ee10280afe.jpg",
+    "text": "MUET Ce personnage ne peut pas être ⟳ pour\nchanter des chansons.\nMÉLODIE LOINTAINE Une fois durant votre tour,\nlorsque vous jouez une chanson, ce personnage\ngagne +1 ◊ pour le reste de ce tour."
+  },
+  "Bashful - Riding the Rails": {
+    "name": "Timide - Roule sur les rails",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/39_36f206ddad0cebcdc373b602b211523d706c773f.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)"
+  },
+  "Doc - Taking Notes": {
+    "name": "Prof - Prend des notes",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/210_49bc959a12e8e6f1d63eac2e2b6b9325d5b780bd.jpg",
+    "text": "PARTAGER SES CONNAISSANCES Lorsque vous jouez\nce personnage, si vous avez un autre personnage\nSept Nains ou Princesse en jeu, piochez une carte."
+  },
+  "Grumpy - Soreheaded Miner": {
+    "name": "Grincheux - Mineur à la tête dure",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/41_05a35cf832d2bad46473f07dfd7fde5b6dd0d8fe.jpg"
+  },
+  "Sneezy - Startlingly Loud": {
+    "name": "Atchoum - Étonnamment bruyant",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/42_8d0252195b7d8dbac915ca4c8e5eacf287e78800.jpg",
+    "text": "GESUNDHEIT Lorsque vous jouez ce personnage,\nchoisissez un personnage qui gagne +1 ◊ pour le\nreste de ce tour."
+  },
+  "Happy - Joyful Adventurer": {
+    "name": "Joyeux - Aventurier jovial",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/43_e989a7dcde6bee1538e09ccdf9f41a23cec1e6a4.jpg"
+  },
+  "Sleepy - Deep Sleeper": {
+    "name": "Dormeur - Dans un profond sommeil",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/44_45097d5caad6e8c5f740b74b9c6780d5a829daa5.jpg",
+    "text": "DE BEAUX RÊVES Lorsque ce personnage est banni, si\nvous avez un personnage Sept Nains ou Princesse en\njeu, vous pouvez piocher une carte."
+  },
+  "Alma Madrigal - Heart of the Family": {
+    "name": "Alma Madrigal - Cœur de la famille",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/45_ed3801fe4e06cbb8f297d58765ee4b9cb9e9d2ed.jpg",
+    "text": "TROUVER UNE SOLUTION Chaque fois que ce personnage\nest envoyé à l'aventure, choisissez l'un de vos personnages\net déplacez jusqu'à 1 de ses dommages sur un personnage\nadverse de votre choix."
+  },
+  "Frozone - Super Slick": {
+    "name": "Frozone - Super classe",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/46_6b83f23cfcd51614cafbd6fe3143f7a1aeaa5301.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)"
+  },
+  "Will o' the Wisp - Forest Spirit": {
+    "name": "Feux follets - Esprit de la forêt",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/51_6c06ad76f343630523ae6b8498b9e25c19739a8f.jpg",
+    "text": "MONTREZ-VOUS Lorsque ce personnage est\nbanni via un défi, vous pouvez renvoyer cette\ncarte dans votre main."
+  },
+  "Violet Parr - Learning New Powers": {
+    "name": "Violette Parr - Apprend de nouveaux pouvoirs",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/55_f05efd3dd541a3fdc0701ba0d8af367765b1de74.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)\nPARADE Lorsque vous jouez ce personnage, vous\npouvez choisir un personnage et déplacer l'un\nde ses dommages sur un personnage adverse de\nvotre choix."
+  },
+  "Mrs. Incredible - Super Stretchy": {
+    "name": "Mme Indestructible - Super extensible",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/49_fad3499a35e6ebcce65c8b04d106689fca290b68.jpg",
+    "text": "SOUPLESSE D'ESPRIT Au début de votre tour, vous\npouvez choisir entre :\n• Ce personnage gagne Insaisissable jusqu'au début\nde votre prochain tour. (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)\n• Ce personnage gagne +1 ◊ pour le reste de ce tour."
+  },
+  "Hamish, Hubert & Harris - Making Mischief": {
+    "name": "Hamish, Hubert et Harris - Font des bêtises",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/50_8e041c6089a9f2f804a4de88aa5ab275c9d33f81.jpg",
+    "text": "RESTER CALME Ce personnage peut entrer en\njeu épuisé.\nPIÈGE ASTUCIEUX À la fin de votre tour, si ce\npersonnage est épuisé, choisissez un personnage\nadverse qui ne se redresse pas au début de son\nprochain tour."
+  },
+  "Elinor - Bespelled Queen": {
+    "name": "Elinor - Reine ensorcelée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/51_1675e1208d14cd9b68d598aacd82e6617326c4e4.jpg",
+    "text": "Offensif +2 (Lorsqu'il défie, ce personnage\ngagne +2 ¤.)"
+  },
+  "Mickey Mouse - Experienced Traveler": {
+    "name": "Mickey Mouse - Voyageur expérimenté",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/52_5a6664ff3d8513c783a5364158fdbad739f09755.jpg",
+    "text": "ÉCLAIRER LE CHEMIN Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, vous pouvez piocher une carte."
+  },
+  "Mirage - Super Recruiter": {
+    "name": "Mirage - Recruteuse de Supers",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/208_13ee2bed7415d99a920a56f8663dd9fb1a8b5aa9.jpg",
+    "text": "PARTENARIAT D'AFFAIRES Lorsque vous jouez ce\npersonnage, si vous avez un personnage Super ou\nHéros en jeu, vous pouvez piocher une carte."
+  },
+  "Edna Mode - Fashion Designer": {
+    "name": "Edna Mode - Créatrice de mode",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/209_eed30e8fe38b2ed9660b1c6961612c981423c7cc.jpg",
+    "text": "PAS DE CAPES ! Lorsque vous jouez ce personnage,\nvous pouvez choisir un objet coûtant 2 ou moins et le\nrenvoyer dans la main de son propriétaire. Si vous le\nfaites, son propriétaire pioche une carte.\nRENDRE LES SUPERS SUPERBES Chaque fois que ce\npersonnage est envoyé à l'aventure, vos personnages\nSuper gagnent +1 ◊ pour le reste de ce tour."
+  },
+  "Maleficent - Imperious Traveler": {
+    "name": "Maléfique - Voyageuse impérieuse",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/55_59ef6f8dfab70f06252a70757cf9f85f0dd37d2c.jpg",
+    "text": "ÉCOUTE MES MOTS Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, vous pouvez choisir un\npersonnage adverse et l'épuiser."
+  },
+  "Pepa Madrigal - Calm Before the Storm": {
+    "name": "Pepa Madrigal - Calme avant la tempête",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/56_34a7faa1805f4eea7bfbb85886ef055bd659f171.jpg",
+    "text": "TEMPS ORAGEUX Lorsque vous jouez ce\npersonnage, infligez 1 dommage à chacun de vos\nautres personnages.\nÉCLAIRCIE Une fois durant votre tour, lorsque\nvous retirez 1 dommage ou plus de l'un de vos\npersonnages, piochez une carte."
+  },
+  "Mor'du - Savage Cursed Prince": {
+    "name": "Mor'du - Prince maudit sauvage",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/57_3f346378e2b5047b35566fed6f6bcd037eebb3f6.jpg",
+    "text": "RUGISSEMENT FÉROCE Lorsque vous jouez ce\npersonnage, épuisez tous vos personnages qui ne\nsont pas nommés Mor'du.\nENRACINÉS DE PEUR Vos personnages qui ne\nsont pas nommés Mor'du ne se redressent pas au\ndébut de votre tour."
+  },
+  "Alma Madrigal - Keeper of the Flame": {
+    "name": "Alma Madrigal - Gardienne de la flamme",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/58_58d7dc21fdfc533f08335486eb387e4ac116722c.jpg",
+    "text": "Alter 3 ⬡ (Vous pouvez payer 3 ⬡ pour jouer ce\npersonnage sur l'un de vos personnages nommé Alma\nMadrigal.)\nÇA SUFFIT Chaque fois que vous retirez 1 dommage\nou plus de l'un de vos personnages, vous pouvez\nchoisir un personnage adverse et l'épuiser."
+  },
+  "Frozone - Super Cool": {
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/226_6e403f908f57c899c20115b76dd3ed02440d7398.jpg",
+    "text": "Charge\nJETTE UN FROID Lorsque vous jouez ce\npersonnage, si vous avez un autre personnage\nSuper en jeu, vous pouvez choisir un\npersonnage adverse et l'épuiser."
+  },
+  "Luisa Madrigal - Confident Climber": {
+    "name": "Luisa Madrigal - Grimpeuse sûre d'elle",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/227_e58bc8086f1b5359cd8605f9d3370479fb4450da.jpg",
+    "text": "Alter 3 ⬡\nJE PEUX ENCAISSER 1 ⬡ — Choisissez l'un de vos\npersonnages et déplacez jusqu'à 1 de ses dommages\nsur ce personnage-ci. Ensuite, si ce personnage-ci a 3\ndommages ou plus, déplacez tous ses dommages sur\nun personnage adverse de votre choix."
+  },
+  "Dash Parr - Lava Runner": {
+    "name": "Flèche Parr - Court sur la lave",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/52_cc9a5443e3215e768facc742424c365458cb3a99.jpg",
+    "text": "Charge (Ce personnage peut défier le tour où il\nest joué.)\nTEMPS RECORD Ce personnage peut être envoyé\nà l'aventure le tour où il est joué."
+  },
+  "Luisa Madrigal - Pushing Through": {
+    "name": "Luisa Madrigal - Pousse jusqu'au bout",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/62_34275e96f01b5f9e2e84dd2df6e294570cb58bf9.jpg",
+    "text": "Offensif +2 (Lorsqu'il défie, ce personnage\ngagne +2 ¤.)"
+  },
+  "Super Relocation Program": {
+    "name": "Programme de réinsertion des Supers",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/63_f3b2b504c3dc88b411e72bf02365c2cac9822aa9.jpg",
+    "text": "Choisissez l'un de vos personnages et renvoyez-le dans\nvotre main. Si vous avez ainsi renvoyé un personnage\nHéros, piochez 2 cartes."
+  },
+  "Right Behind You": {
+    "name": "Tous derrière toi",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/64_a0f1e90fccc45dbb6347edb16da6f831701fc47d.jpg",
+    "text": "Piochez une carte. Si vous avez un personnage Sept\nNains et un personnage Princesse en jeu, vous pouvez\njouer gratuitement un personnage Sept Nains."
+  },
+  "Don't Be Nervous": {
+    "name": "Ne sois pas si nerveux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/65_2ac113cabf727ffa549d54aad1712c69a507bd22.jpg",
+    "text": "Cherchez une carte Personnage Princesse dans votre\npioche, révélez-la à tous les joueurs et ajoutez-la à\nvotre main. Ensuite, mélangez votre pioche. Si vous\navez 2 personnages Sept Nains ou plus en jeu, piochez\n2 cartes et gagnez 2 éclats de Lore."
+  },
+  "Super Suit": {
+    "name": "Super-costume",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/66_ec902385eb5df2c82eded38adae518fd567dfd06.jpg",
+    "text": "SIMPLE, ÉLÉGANT Lorsque vous jouez cet objet, si vous\navez un personnage Héros en jeu, gagnez 1 éclat de Lore.\nENFILER SON COSTUME ⟳, 2 ⬡ — Si vous avez joué un\npersonnage Héros ce tour-ci, piochez une carte."
+  },
+  "DunBroch Family Tapestry": {
+    "name": "Tapisserie familiale de DunBroch",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/228_ab3b7498fc65766537fc614c3b1fd9245c1e688c.jpg",
+    "text": "DÉCHIRÉE Cet objet entre en jeu épuisé.\nRÉPARE LE MAL ⟳, Bannissez cet objet — Chaque\njoueur mélange dans sa pioche toutes les cartes\nPersonnage de sa défausse."
+  },
+  "Ring of Stones - Place of Legends": {
+    "name": "Cercle de pierres - Lieu de légendes",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/68_c00b0696e4802fbc10f0e107299158c9c7d0122c.jpg",
+    "text": "SUIS TON DESTIN Vous pouvez déplacer gratuitement vos personnages épuisés\nsur ce lieu.\nLEVER LE VOILE Une fois durant votre tour, lorsqu'un personnage est déplacé sur\nce lieu, gagnez 1 éclat de Lore."
+  },
+  "Merida - Defiant Daughter": {
+    "name": "Merida - Fille défiante",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/69_65e8d28f089057149cdedfc516a6bfedd08c30e2.jpg",
+    "text": "Hors d'atteinte (Les adversaires ne peuvent pas\nchoisir ce personnage, hormis pour un défi.)"
+  },
+  "Hamish, Hubert & Harris - Troublemaking Triplets": {
+    "name": "Hamish, Hubert et Harris - Triplés turbulents",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/70_4bee12bd69e46c06e411b8b45cfb07de69c2f0ef.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)"
+  },
+  "Young MacGuffin - Soft-Spoken Son": {
+    "name": "Le fils MacGuffin - Fils discret",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/71_1a1cc26df165b3c426614e967c6c1a4673a1ba48.jpg"
+  },
+  "Tod - Nimble Fox": {
+    "name": "Rox - Renard agile",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/72_ebb229dd8f973d9f3d9ad776cbb874e2d925d83e.jpg",
+    "text": "Insaisissable (Seuls les personnages avec Insaisissable\npeuvent défier ce personnage.)"
+  },
+  "Helga Sinclair - No Backup Needed": {
+    "name": "Helga Sinclair - N'a pas besoin de renfort",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/73_8b004cf8db18a58abd391589d2a7b7232741c3b9.jpg",
+    "text": "GESTION DE CRISE Jouer ce personnage vous\ncoûte 2 ⬡ de moins si 2 cartes ou plus ont été\nplacées dans votre défausse ce tour-ci."
+  },
+  "The Witch - Wily Woodcarver": {
+    "name": "La Sorcière - Sculptrice rusée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/74_b4e9acf60250a8100a3e9f0a67ea8b5c6e4137ca.jpg",
+    "text": "CLIENTS JAMAIS SATISFAITS Chaque fois que ce\npersonnage est défié, chaque adversaire perd 1\néclat de Lore."
+  },
+  "The Queen - Evil Ruler": {
+    "name": "La Reine - Souveraine malfaisante",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/75_9b4d9fd80bb6f3c3243cce4c80aa050c53765804.jpg",
+    "text": "CRUAUTÉ SANS PAREIL Tant qu'un personnage\nadverse ayant au moins un dommage est en jeu,\nce personnage-ci gagne +2 ¤."
+  },
+  "Buzz Lightyear - Space Ranger": {
+    "name": "Buzz l'Éclair - Ranger de l'espace",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/211_d9727f01d7b22e1d1843cfd881dfc13d7177709c.jpg"
+  },
+  "RC - Remote-Controlled Car": {
+    "name": "Karting - Voiture télécommandée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/77_a8882231f98dda11e7d18efac8e6a215113946d9.jpg",
+    "text": "BATTERIE FAIBLE Ce personnage ne peut ni être\nenvoyé à l'aventure ni défier, sauf si vous payez 1 ⬡.\n(Vous payez ce coût à chaque fois.)"
+  },
+  "Lord MacGuffin - Clever Swordsman": {
+    "name": "Seigneur MacGuffin - Épéiste brillant",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/78_d8b31c184a4769f77baae97b14b08f1337932ad6.jpg",
+    "text": "TU VAS VOIR… Ce personnage peut entrer en jeu\népuisé pour infliger 3 dommages à un personnage\nde votre choix ayant au moins un dommage."
+  },
+  "Lenny - Toy Binoculars": {
+    "name": "Lenny - Jumelles jouet",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/49_042ba0b231a2a52cbd69a0f4c9b4a0f5e016e165.jpg",
+    "text": "BIEN REGARDER Lorsque vous jouez ce personnage,\nchoisissez un adversaire qui révèle sa main et défausse\nune carte Action de votre choix.\nÀ TOUTE ALLURE Une fois durant votre tour, lorsque vous\njouez une action, vous pouvez redresser ce personnage."
+  },
+  "Gaetan Moliere - Clever Burrower": {
+    "name": "Gaëtan Molière - Fouisseur brillant",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/80_bc3fd8d4de05218eb0155f0f75723e3210234de0.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)\nDÉTERRER Chaque fois que ce personnage est\nenvoyé à l'aventure, vous pouvez piocher 2 cartes\npuis défausser 2 cartes."
+  },
+  "Peter Pan - Searching Far and Wide": {
+    "name": "Peter Pan - Cherche par monts et par vaux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/81_e76519ee72e927269a237c4cd91e85a823b54bbc.jpg"
+  },
+  "Milo Thatch - Getting His Hands Dirty": {
+    "name": "Milo Thatch - Se salit les mains",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/230_02ac38962875d06d0f5de360cc09ba5cf5c22fce.jpg",
+    "text": "Hors d'atteinte\nMANŒUVRE D'ÉRUDIT Lorsque vous jouez ce personnage,\nvous pouvez défausser une carte pour choisir un\npersonnage et le renvoyer dans la main de son propriétaire.\nCONNAISSANCES PRATIQUES À la fin de votre tour, si 2\ncartes ou plus ont été placées dans votre défausse ce\ntour-ci, piochez une carte."
+  },
+  "Alien - True Believer": {
+    "name": "Alien - Vrai croyant",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/229_40de9bda4d737a1ba935a3ade72299150b484f87.jpg",
+    "text": "NOUS NE FAISONS QU'UN Ce personnage gagne +1 ¤\npour chaque autre personnage Jouet que vous avez en\njeu.\nLE GRAPPIN L'A CHOISI Durant votre tour, lorsque ce\npersonnage est banni, renvoyez dans votre main une autre\ncarte Personnage nommée Alien de votre défausse."
+  },
+  "Donald Duck - Distracted Traveler": {
+    "name": "Donald - Voyageur distrait",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/212_10359be1d9c4226380be6d303d3aaf8421d538e0.jpg",
+    "text": "CURIOSITÉ BRÛLANTE Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, chaque adversaire défausse\nune carte."
+  },
+  "Buzz Lightyear - On the Way": {
+    "name": "Buzz l'Éclair - J'arrive",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/85_fe7cabf57de0287c926ead47693c04092f079a27.jpg",
+    "text": "MISSION SECRÈTE Chaque fois que vous payez 2 ⬡ ou\nmoins pour jouer une carte non-Personnage, piochez\nune carte puis défaussez une carte.\nSUPER JOUET UNIVERSEL Chaque fois que vous payez\n2 ⬡ ou moins pour jouer un personnage, choisissez un\npersonnage adverse ayant au moins un dommage et\ninfligez-lui 1 dommage."
+  },
+  "Elinor - Renowned Diplomat": {
+    "name": "Elinor - Diplomate renommée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/86_186deb58ae08664a0c584df6d6fecc9f8b2c7b42.jpg",
+    "text": "EFFORTS COORDONNÉS À la fin de votre tour, si\nvous avez 3 personnages épuisés ou plus en jeu,\nchoisissez un personnage adverse et infligez-lui\n1 dommage, gagnez 1 éclat de Lore et piochez\nune carte."
+  },
+  "Lyle Tiberius Rourke - Adventurer for Hire": {
+    "name": "Lyle Tiberius Rourke - Aventurier à engager",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/87_4290e3681197074cf4e33af020ebd1da3c6133ea.jpg",
+    "text": "SAIT CE QUI EST PRÉCIEUX Lorsque vous jouez ce\npersonnage, vous pouvez piocher une carte puis\ndéfausser une carte.\nCOUPS TORDUS À la fin de votre tour, si 2 cartes\nou plus ont été placées dans votre défausse ce\ntour-ci, chaque adversaire perd 1 éclat de Lore."
+  },
+  "Joshua Sweet - Field Surgeon": {
+    "name": "Amadou Gentil - Chirurgien de terrain",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/88_f4b9f65aefb4de382d52bb4add4b9a651f3ac2f8.jpg",
+    "text": "AUCUNE PATIENCE Chaque fois que ce personnage\nest défié, choisissez un adversaire qui se défausse\nd'une carte."
+  },
+  "Merida - Gifted Archer": {
+    "name": "Merida - Archère talentueuse",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/213_61ac373cd89c503d99c92a038243eac5441711d8.jpg",
+    "text": "Alter 3 ⬡ (Vous pouvez payer 3 ⬡ pour jouer ce\npersonnage sur l'un de vos personnages nommé Merida.)\nPROTECTION ACHARNÉE Tant que ce personnage est\népuisé, chaque fois qu'un personnage adverse défie,\nvous pouvez infliger 1 dommage au personnage qui défie."
+  },
+  "The Queen - Devious Disguise": {
+    "name": "La Reine - Déguisement sournois",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/90_a2c9ed10f31668b150c3304e93ec425bc01b1d99.jpg",
+    "text": "PLAN MALÉFIQUE Lorsque vous jouez ce personnage,\nvous pouvez piocher une carte. Si vous le faites,\nchaque adversaire gagne 2 éclats de Lore.\nCŒUR JALOUX Tant qu'un adversaire a plus d'éclats\nde Lore que vous, ce personnage gagne +2 ◊."
+  },
+  "Buzz Lightyear - Jungle Ranger": {
+    "name": "Buzz l'Éclair - Ranger de la jungle",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/241_cfc0db15698b2074c33952b75785e2ae5f1dbc74.jpg",
+    "text": "Alter 5 ⬡\nPREND LES COMMANDES Lorsque vous jouez ce personnage,\nvous pouvez renvoyer dans votre main une carte Action coûtant\n7 ou moins de votre défausse.\nENTRAÎNEMENT AVANCÉ Lorsque vous jouez une action,\nchoisissez un personnage qui gagne +1 ◊ pour le reste de ce tour."
+  },
+  "Cruella De Vil - Judgmental Traveler": {
+    "name": "Cruella d'Enfer - Voyageuse critique",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/92_a3d9f624fed28d5e017b04b040c9685164b30faf.jpg",
+    "text": "VOUS N'ÊTES PLUS À LA MODE Chaque fois que ce\npersonnage est envoyé à l'aventure, si vous avez joué\nun autre personnage ce tour-ci, vous pouvez choisir un\npersonnage ayant au moins un dommage et le bannir."
+  },
+  "Helga Sinclair - Prepared for Anything": {
+    "name": "Helga Sinclair - Prête à toute éventualité",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/93_065d1ace12a14bfb81cb28a48ee774d1b0b1a6ff.jpg",
+    "text": "ENTRAÎNEMENT AU COMBAT Chaque fois que ce\npersonnage est envoyé à l'aventure, choisissez un\npersonnage adverse et infligez-lui 1 dommage. Si 2\ncartes ou plus ont été placées dans votre défausse ce\ntour-ci, infligez-lui 2 dommages à la place."
+  },
+  "The Huntsman - On the Queen's Orders": {
+    "name": "Le chasseur - Aux ordres de la Reine",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/94_d8990693fe90e523aca37240da74c6aee3a3ead1.jpg",
+    "text": "Hors d'atteinte (Les adversaires ne peuvent pas\nchoisir ce personnage, hormis pour un défi.)"
+  },
+  "Strange Things": {
+    "name": "Étrange Bazar",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/95_f5c293a15fc05d824dc23bee1ac15de0ed3888b0.jpg",
+    "text": "(Vous pouvez ⟳ un personnage coûtant 4 ou plus pour\nchanter cette chanson gratuitement.)\nChoisissez jusqu'à 2 personnages qui ne peuvent pas\nêtre envoyés à l'aventure jusqu'au début de votre\nprochain tour. Piochez une carte."
+  },
+  "Sabotage": {
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/96_1ca16db2ce93f602827ad51fae68b81973dedd66.jpg",
+    "text": "Choisissez un objet ou un lieu et bannissez-le, ainsi\nque tous les objets ou lieux portant le même nom."
+  },
+  "The Family Scattered": {
+    "name": "Famille dispersée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/231_72ebf9394442a6cac7e3220cc8ebc24a871fa120.jpg",
+    "text": "Choisissez un adversaire qui choisit 3 de ses\npersonnages et renvoie dans sa main l'un des\npersonnages choisis, en place un autre sous sa\npioche, et place le dernier sur sa pioche."
+  },
+  "Buzz's Arm": {
+    "name": "Bras de Buzz",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/98_2f5fdc78fe256162ea2b26f8d991cde0440c38b4.jpg",
+    "text": "PIÈCE MANQUANTE Vous pouvez jouer cet objet\ngratuitement si un personnage nommé Buzz l'Éclair a\nété banni ce tour-ci.\nASSEMBLAGE NÉCESSAIRE ⟳ — La prochaine action ou\nle prochain objet que vous jouez ce tour-ci vous coûte\n1 ⬡ de moins."
+  },
+  "The Claw": {
+    "name": "Le Grappin",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/99_d1404ff551ee9bfce94e2696041542b48639df8d.jpg",
+    "text": "IL CHOISIT ⟳, 2 ⬡, Bannissez l'un de vos personnages —\nChoisissez un personnage adverse et renvoyez-le dans la\nmain de son propriétaire."
+  },
+  "Gyro-Evac": {
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/100_5bd2a44f8b42ebb5991d50a2703e6d4a9096be16.jpg",
+    "text": "ON DÉCOLLE ⟳, 1 ⬡ — Choisissez l'un de vos\npersonnages qui gagne Insaisissable jusqu'au début\nde votre prochain tour. (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage-là.)\nATTERRISSAGE EN CRASH ⟳, Bannissez cet objet —\nChaque joueur perd 2 éclats de Lore."
+  },
+  "Merida's Bow": {
+    "name": "Arc de Merida",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/101_d2ac7da784a5f8825b5d7e121e163b90b9354f6d.jpg",
+    "text": "TIR FACILE Lorsque vous jouez cet objet, choisissez un\npersonnage et infligez-lui 1 dommage.\nDERNIÈRE FLÈCHE 1 ⬡, Bannissez cet objet —\nChoisissez un personnage et infligez-lui 1 dommage."
+  },
+  "Pizza Planet - Spaceport": {
+    "name": "Pizza Planet - Base de lancement",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/102_6e47f041e79a3c59d0989d19ca4591109bf9711d.jpg",
+    "text": "AUTORISATION D'ENTRÉE Vous pouvez déplacer gratuitement vos personnages\nJouet sur ce lieu.\nÉTROITEMENT SURVEILLÉ Chaque fois qu'un personnage sur ce lieu est défié,\nchaque adversaire perd 1 éclat de Lore."
+  },
+  "Lyle Tiberius Rourke - Crystallized Commander": {
+    "name": "Lyle Tiberius Rourke - Commandant cristallisé",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/214_25c6cbb400d04ede20aead6def6508d66498476b.jpg",
+    "text": "Alter 4 ⬡ (Vous pouvez payer 4 ⬡ pour jouer ce personnage\nsur l'un de vos personnages nommé Lyle Tiberius Rourke.)\nLES PLANS ONT CHANGÉ Lorsque vous jouez ce personnage,\nplacez les 2 cartes du dessus de votre pioche dans votre\ndéfausse. Ensuite, vous pouvez renvoyer dans votre main\nune carte Action coûtant 4 ou moins de votre défausse."
+  },
+  "Mr. Incredible - Bob Parr": {
+    "name": "M. Indestructible - Bob Parr",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/215_c915d45da5f35c3c73dae1ab111418d0db107d90.jpg"
+  },
+  "Lyle Tiberius Rourke - Looking for His Moment": {
+    "name": "Lyle Tiberius Rourke - Attend son heure",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/105_43c41e27efa298bf658f792d369e8565d1f44a0d.jpg"
+  },
+  "Pegasus - Searching High and Low": {
+    "name": "Pégase - Cherche entre ciel et terre",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/106_3cba3cdc1938a8280f696288f2b010a391b60d69.jpg",
+    "text": "Insaisissable (Seuls les personnages avec Insaisissable\npeuvent défier ce personnage.)"
+  },
+  "Audrey Ramirez - Gutsy Mechanic": {
+    "name": "Audrey Ramirez - Mécanicienne qui a du cran",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/107_5476fed038b8a479e28670fb2f6d84e033877892.jpg",
+    "text": "Charge (Ce personnage peut défier le tour où il\nest joué.)"
+  },
+  "Milo Thatch - Courageous Explorer": {
+    "name": "Milo Thatch - Explorateur courageux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/108_5ccfe0365db2e30e88c9157e58efd00536461a08.jpg",
+    "text": "DÉCOUVERTE FASCINANTE Durant votre tour,\nsi 2 cartes ou plus ont été placées dans votre\ndéfausse ce tour-ci, ce personnage gagne +1 ◊."
+  },
+  "Zeus - Defiant God": {
+    "name": "Zeus - Dieu intraitable",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/109_8e2b5fd46293af250c520d487b722f5dcc7a2acc.jpg",
+    "text": "BLESSURE D'IMMORTEL Ce personnage entre en\njeu avec 4 dommages."
+  },
+  "Preston Whitmore - Expedition Financier": {
+    "name": "Preston Whitmore - Financeur de l'expédition",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/110_80163da3e600e24477313b08eb7cdc3ba0e87003.jpg",
+    "text": "LE PRIX DU PROGRÈS Lorsque vous jouez ce\npersonnage, vous pouvez placer les 2 cartes du\ndessus de votre pioche dans votre défausse."
+  },
+  "Jingle Joe - Sid's Toy": {
+    "name": "Jingle Joe - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/111_eed4cf54f07a86abfae08e8ad94c522fcdd8c4f8.jpg",
+    "text": "ÉTEINDRE LA LUMIÈRE Durant votre tour, chaque\nfois que l'un de vos autres personnages Jouet\nest banni, choisissez l'un de vos personnages\nqui gagne Insaisissable jusqu'au début de votre\nprochain tour. (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage-là.)"
+  },
+  "Wind-Up Frog - Sid's Toy": {
+    "name": "La grenouille - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/112_fddb67ba520b69b174f80faf6c8c8cf2f67150cf.jpg",
+    "text": "PROPULSION SUPPLÉMENTAIRE Jouer ce personnage\nvous coûte 2 ⬡ de moins si l'un de vos personnages\nJouet a été banni ce tour-ci."
+  },
+  "Roller Bob - Sid's Toy": {
+    "name": "Roller Bob - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/113_36d418e6967ba5451176a21396ee40569fd3f738.jpg",
+    "text": "IL EST TEMPS DE BOUGER Lorsque vous jouez\nce personnage, vous pouvez placer 2 cartes\nPersonnage de votre défausse sous votre pioche\npour donner Charge à ce personnage-ci pour le\nreste de ce tour. (Ce personnage peut défier le\ntour où il est joué.)"
+  },
+  "Hand-in-the-Box - Sid's Toy": {
+    "name": "La Main dans la Boîte - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/114_2e53816484500f349743dcc709abc6cf2db1c1b4.jpg",
+    "text": "À RESSORT Vous pouvez placer sous votre pioche\nune carte Personnage Jouet de votre défausse pour\njouer ce personnage-ci gratuitement."
+  },
+  "Daisy Duck - Trendy Traveler": {
+    "name": "Daisy - Voyageuse tendance",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/216_1d9e429ba350901b927e3fc6536fada5a63d06ed.jpg",
+    "text": "LA PAUSE EST TERMINÉE Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un personnage\nce tour-ci, vous pouvez choisir un autre personnage et\nle redresser. Si vous le faites, ce personnage-là ne peut\npas être envoyé à l'aventure pour le reste de ce tour."
+  },
+  "Copper - Big Dog": {
+    "name": "Rouky - Grand chien",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/116_49e5b2120fa1769e9fd96cf221e1f765151baf32.jpg"
+  },
+  "Jebidiah Farnsworth - Cookie": {
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/117_513572b79a9c97d1940b34cd60763fcc3c8206a7.jpg",
+    "text": "Insaisissable (Seuls les personnages avec Insaisissable\npeuvent défier ce personnage.)\nCombattant (Ce personnage ne peut pas être envoyé\nà l'aventure et doit défier à chaque tour s'il le peut.)"
+  },
+  "Dash Parr - Super Speedy": {
+    "name": "Flèche Parr - Super rapide",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/118_1c90274dc5f374a5aca36320624bc6f165bad58e.jpg",
+    "text": "Charge (Ce personnage peut défier le tour où il\nest joué.)"
+  },
+  "Babyhead - Leader of Sid's Toys": {
+    "name": "Tête de bébé - Chef des jouets de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/119_3f060b481f7d9fb455cc4ac656039e08b8564e50.jpg",
+    "text": "SERREZ LES VIS Chaque fois que vous payez 2 ⬡ ou\nmoins pour jouer une carte, choisissez un personnage\nqui gagne +2 ¤ pour le reste de ce tour.\nPIÈCES DE RECHANGE Durant votre tour, chaque fois\nque l'un de vos autres personnages est banni, piochez\nune carte."
+  },
+  "Bouncing Ducky - Sid's Toy": {
+    "name": "Canard - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/120_8d11448e2593af15802fa65aa3702823779b5ae2.jpg",
+    "text": "JOUETS REJETÉS Jouer ce personnage coûte 1 ⬡\nde moins pour chaque carte Personnage Jouet dans\nvotre défausse.\nRÉUTILISÉ Lorsque vous jouez ce personnage, placez\nsous votre pioche toutes les cartes Personnage Jouet\nde votre défausse, dans l'ordre de votre choix."
+  },
+  "Jack-Jack Parr - Incredible Potential": {
+    "name": "Jack-Jack Parr - Potentiellement indestructible",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/232_40de879b03d8dad5c62192205862f0962f2b1608.jpg",
+    "text": "IL SE PASSE DES CHOSES TRÈS BIZARRES Au début de votre\ntour, vous pouvez placer la carte du dessus de votre pioche\ndans votre défausse. Si la carte est de type :\n• personnage, ce personnage-ci gagne +2 ¤ pour le reste\nde ce tour.\n• action ou objet, ce personnage-ci gagne +2 ◊ pour le\nreste de ce tour.\n• lieu, choisissez et bannissez un personnage."
+  },
+  "Queen of Hearts - Impatient Traveler": {
+    "name": "La Reine de Cœur - Voyageuse impatiente",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/122_5af6011ebf4ca83d3bb5867b0a0b3fef71584240.jpg",
+    "text": "ORDRE ROYAL Chaque fois que ce personnage est envoyé à\nl'aventure, si vous avez joué un autre personnage ce tour-ci,\nchoisissez un personnage qui gagne Charge pour le reste de\nce tour. (Ce personnage-là peut défier le tour où il est joué.)"
+  },
+  "Hercules - Young Rescuer": {
+    "name": "Hercule - Jeune sauveur",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/123_c1b7709a43843cedb24cbded3c0e7b88ea0a1388.jpg",
+    "text": "SACRIFICE HÉROÏQUE Lorsque vous jouez ce personnage,\nvous pouvez défausser votre main. Si vous le faites,\nrenvoyez dans votre main une carte de votre défausse."
+  },
+  "Vincenzo Santorini - On the Run": {
+    "name": "Vincenzo Santorini - En fuite",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/124_73d66ea651fb1b2c87da1b0eee4b944e10a5f408.jpg",
+    "text": "Insaisissable (Seuls les personnages avec\nInsaisissable peuvent défier ce personnage.)\nNEUTRALISER Les objets adverses ne se redressent\npas au début du tour de leur propriétaire."
+  },
+  "The Leviathan - Guardian of Atlantis": {
+    "name": "Le Léviathan - Gardien de l'Atlantide",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/233_96a01cc8e67f6086dcf4b838f25e69dd2414b71d.jpg",
+    "text": "C'EST UNE MACHINE ! Lorsque vous jouez\nce personnage, si 2 cartes ou plus ont été\nplacées dans votre défausse ce tour-ci,\nvous pouvez choisir et bannir autant de\npersonnages adverses que vous le souhaitez,\navec une ¤ totale de 10 ou moins."
+  },
+  "Sid Phillips - Toy Surgeon": {
+    "name": "Sid Phillips - Chirurgien de jouet",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/126_aaf19b6c0b91c1d966994456b9390e54f1025732.jpg",
+    "text": "FINI DE JOUER Lorsque vous jouez ce personnage, vous\npouvez choisir l'un de vos autres personnages et le\nbannir. Si vous le faites, chaque adversaire choisit l'un\nde ses personnages et le bannit.\nDEUX POUR LE PRIX D'UN ! Durant votre tour, chaque\nfois qu'un personnage Jouet est banni, gagnez 2\néclats de Lore."
+  },
+  "Mr. Incredible - Super Strong": {
+    "name": "M. Indestructible - Super fort",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/234_3f20c47730070192ec74638a9ff6ff3bb2238da2.jpg",
+    "text": "Alter 3 ⬡\nTOUJOURS UNIS Ce personnage gagne +2 ¤ pour\nchaque autre personnage que vous avez en jeu.\nC'EST PARTI ! Chaque fois que l'un de vos personnages\nSuper défie un autre personnage, piochez une carte."
+  },
+  "Pterodactyl Janie Doll - Sid's Toy": {
+    "name": "La poupée ptérodactyle - Jouet de Sid",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/128_ee3b0474df006f57e654b452a22b0ca38a97015b.jpg",
+    "text": "DOUBLE GREFFE Durant votre tour, lorsque ce\npersonnage est banni, chaque adversaire perd 1\néclat de Lore et vous gagnez 1 éclat de Lore."
+  },
+  "Inner Strength": {
+    "name": "Force intérieure",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/129_85387eb21ea9bd41ffaae50b45af66a29eb852f4.jpg",
+    "text": "Choisissez un personnage qui gagne +1 ¤ pour le\nreste de ce tour. Piochez une carte."
+  },
+  "Firefly Swarm": {
+    "name": "Essaim de lucioles",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/130_0f3654008558114f7c8417c0d03a45ab65f4e90e.jpg",
+    "text": "Choisissez entre :\n• Choisissez un personnage ayant 2 ¤ ou moins et\nbannissez-le.\n• Si 2 autres cartes ou plus ont été placées dans votre\ndéfausse ce tour-ci, choisissez un personnage et\nbannissez-le."
+  },
+  "Like a Bird in the Sky": {
+    "name": "Je pourrais m'envoler",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/131_b9a816ab93ad956cdd3d0513c60ed4fd3403c7f5.jpg",
+    "text": "(Vous pouvez ⟳ un personnage coûtant 2 ou plus pour\nchanter cette chanson gratuitement.)\nChoisissez un personnage qui gagne +1 ◊ et\nInsaisissable jusqu'au début de votre prochain tour.\n(Seuls les personnages avec Insaisissable peuvent défier\nce personnage.)"
+  },
+  "Hero Work": {
+    "name": "Super-héroïsme",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/132_54836ba4f82301a82772936c0f3b19c7712e5974.jpg",
+    "text": "Vos personnages gagnent +1 ¤ pour le reste de ce tour. Vos\npersonnages Héros gagnent « Chaque fois que ce personnage\nen défie un autre, chaque adversaire perd 1 éclat de Lore et\nvous gagnez 1 éclat de Lore. » pour le reste de ce tour."
+  },
+  "Dangerous Plan": {
+    "name": "Plan dangereux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/133_226b39cd567565bd1955a10062ac69ec8d971851.jpg",
+    "text": "Piochez 2 cartes. Ensuite, défaussez une carte au hasard."
+  },
+  "Amazu's Inkcaster": {
+    "name": "Invocateur d'Encre d'Amazu",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/134_dae56ced25638524b622d1a8783e0c2c32214be7.jpg",
+    "text": "À L'HORIZON ⟳, 1 ⬡ — Regardez les 4 cartes du dessus\nde votre pioche. Vous pouvez révéler une carte Lieu parmi\nelles et l'ajouter à votre main. Placez les autres cartes\nsous votre pioche, dans l'ordre de votre choix."
+  },
+  "Remote Inklands - Desert Ruins": {
+    "name": "Terres d'encres reculées - Ruines du désert",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/135_618d27035af2e856d70ed0c8f52cb9c95fe6ef50.jpg",
+    "text": "VENTS ÉROSIFS Au début de votre tour, placez la carte du dessus de\nvotre pioche dans votre défausse.\nEXPÉDITION RÉUSSIE Les personnages sur ce lieu gagnent +2 ¤."
+  },
+  "Leviathan's Lair - Dangerous Ground": {
+    "name": "Antre du Léviathan - Terrain dangereux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/136_d783097b9840f67093931dbd04248bf3feb33488.jpg",
+    "text": "VAINCU PAR LES DUNES Lorsque ce lieu est banni, chaque adversaire choisit\nl'un de ses personnages et le bannit."
+  },
+  "Robin Hood - Desert Wanderer": {
+    "name": "Robin des Bois - Vagabond du désert",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/137_86dd9ef0ad60bad1b0640ff0c0ffc1606f32acef.jpg"
+  },
+  "Prince Charming - Searching for Answers": {
+    "name": "Prince charmant - Cherche des réponses",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/138_63cc211b369935a7cda4f749bdba620b867efa82.jpg"
+  },
+  "Merryweather - Feisty Fairy": {
+    "name": "Pimprenelle - Fée fougueuse",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/139_0cad650f776a51a5b9995fdc10f10b225c13740a.jpg",
+    "text": "Hors d'atteinte (Les adversaires ne peuvent pas\nchoisir ce personnage, hormis pour un défi.)"
+  },
+  "Fauna - Good-Natured Fairy": {
+    "name": "Pâquerette - Fée débonnaire",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/140_ae779f1b991e26aba7b1e53ffab3feaf638bfd1b.jpg",
+    "text": "Soutien (Lorsque ce personnage est envoyé à\nl'aventure, vous pouvez ajouter sa ¤ à celle\nd'un autre personnage au choix pour le reste de\nce tour.)"
+  },
+  "Flora - Strong-Willed Fairy": {
+    "name": "Flora - Fée à la volonté de fer",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/141_c1065ee66e9f74568522dea7e0a43a60cd1f11dd.jpg",
+    "text": "ABRI LUMINEUX Lorsque vous jouez ce personnage,\nvos autres personnages gagnent Résistance +1 jusqu'au\ndébut de votre prochain tour. (Les dommages infligés à\nces personnages sont réduits de 1.)"
+  },
+  "Mirabel Madrigal - Resourceful Daughter": {
+    "name": "Mirabel Madrigal - Fille pleine de ressources",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/142_72dd210507f2e20d0a5f62e5503bd974e415574b.jpg",
+    "text": "CECI VOUS AIDERA Lorsque vous jouez ce personnage,\nchoisissez un personnage et retirez-lui jusqu'à 2\ndommages."
+  },
+  "Syndrome - Evil Inventor": {
+    "name": "Syndrome - Inventeur machiavélique",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/143_18b15eb36e01c4032cf537f074b3558010dcd0ee.jpg",
+    "text": "Agilité (Ce personnage peut défier comme s'il\navait Insaisissable.)"
+  },
+  "Kida - Guardian of the Path": {
+    "name": "Kida - Gardienne du passage",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/217_d2955a7bb1cb9d88f78cd023c8bbf3b39c4cded3.jpg",
+    "text": "DÉFENSE NATURELLE Lorsque vous jouez ce\npersonnage, choisissez un personnage adverse qui\nsubit -2 ¤ pour le reste de ce tour."
+  },
+  "Gadget Hackwrench - Resourceful Mechanic": {
+    "name": "Gadget - Mécanicienne pleine de ressources",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/145_68e88610a5f3dcd40c7aa099e8f7c2c68f35faf5.jpg",
+    "text": "IL EST TEMPS DE BRICOLER Lorsque vous jouez ce\npersonnage, vous pouvez jouer gratuitement un\nobjet coûtant 3 ou moins.\nTOUT CE QU'IL FAUT Vos personnages avec\nSoutien gagnent +1 ◊."
+  },
+  "Norton Nimnul - Misanthropic Genius": {
+    "name": "Professeur Nimnul - Génie misanthrope",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/146_2ed30f44c29aec1d7b7f2fb4a165667616f61b84.jpg",
+    "text": "RAYON DÉVITALISANT Une fois durant votre tour,\nlorsque vous jouez un objet, choisissez un personnage\nadverse qui subit -2 ¤ pour le reste de ce tour."
+  },
+  "Gadget Hackwrench - Finder of Lost Parts": {
+    "name": "Gadget - Chercheuse de pièces égarées",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/147_9e3b19d7de80d1e937b5a80cb65d9cdd5751b537.jpg",
+    "text": "PETITS TRUCS UTILES Lorsque ce personnage quitte\nla zone de jeu, vous pouvez renvoyer dans votre main\nune carte Objet de votre défausse."
+  },
+  "Zipper - Tiny Helper": {
+    "name": "Ruzor - Assistant minuscule",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/promo3/50_784037fff5dfb167545931393d4b0160f78ef9af.jpg"
+  },
+  "Edna Mode - Super Suit Designer": {
+    "name": "Edna Mode - Créatrice de Super-costume",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/149_a1cca919bffedfae00f21f3cf5aa4d1e134104c4.jpg",
+    "text": "ACCESSOIRE CLÉ ⟳ — Choisissez un objet et\nredressez-le.\nLE MINIMUM SYNDICAL Tant que vous avez un objet\nnommé Super-costume en jeu, ce personnage\ngagne Hors d'atteinte. (Les adversaires ne peuvent\npas choisir ce personnage, hormis pour un défi.)"
+  },
+  "Zipper - Big Helper": {
+    "name": "Ruzor - Assistant majuscule",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/235_5607cf0dd0a06299dd1add7bcadf010c49dfa1b1.jpg",
+    "text": "Alter 2 ⬡\nENTHOUSIASME BOURDONNANT Chaque fois que\nce personnage est envoyé à l'aventure, vous pouvez\najouter sa ⛉ à la ¤ d'un autre personnage de\nvotre choix pour le reste de ce tour."
+  },
+  "Luisa Madrigal - No Pressure": {
+    "name": "Luisa Madrigal - Sans pression",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/151_8b2e6240b5e3720b60c58f711150f6be4ea45e11.jpg",
+    "text": "PORTE LE POIDS Chaque fois que ce personnage\nest envoyé à l'aventure, vous pouvez choisir un\npersonnage et déplacer jusqu'à 3 de ses dommages\nsur ce personnage-ci."
+  },
+  "Dr. Sara Bellum - Head of Research": {
+    "name": "Irma Tièregrise - Tête pensante du laboratoire",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/152_fe7d1421b2f544bb28305e91990a84ca6c2be68f.jpg",
+    "text": "EXAMEN SCIENTIFIQUE Lorsque vous jouez ce\npersonnage, regardez la carte du dessus de votre\npioche. Placez-la sur ou sous votre pioche."
+  },
+  "Isabela Madrigal - Perfectly in Control": {
+    "name": "Isabela Madrigal - En parfait contrôle",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/153_40e88717d9501a7524ad2c0b3f1312777ba3ee47.jpg",
+    "text": "ALLER MIEUX Lorsque vous jouez ce personnage\net à chaque fois qu'il est envoyé à l'aventure, vous\npouvez choisir l'un de vos personnages et déplacer\ntous ses dommages sur ce personnage-ci.\nPRENDRE SOIN DE SOI À la fin de votre tour, vous\npouvez retirer tous les dommages de ce personnage."
+  },
+  "Bruno Madrigal - Oasis Oracle": {
+    "name": "Bruno Madrigal - Oracle de l'oasis",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/218_15f72acdfecd164fb8d3fc799fbaca7ea6cfe30f.jpg",
+    "text": "RENSEIGNE-TOI SUR SA VISION Une fois durant votre\ntour, lorsque vous retirez des dommages de l'un de vos\npersonnages, vous pouvez regarder les 2 cartes du dessus\nde votre pioche. Ajoutez-en une à votre main et placez\nl'autre sous votre pioche.\nTU T'EN SORTIRAS Chaque fois que ce personnage est\nenvoyé à l'aventure, vous pouvez choisir un personnage et\nlui retirer tous ses dommages."
+  },
+  "Cinderella - Resourceful Traveler": {
+    "name": "Cendrillon - Voyageuse pleine de ressources",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/155_ad7e9856dc7b0c683417b7397374146829385834.jpg",
+    "text": "CECI ET CELA Chaque fois que ce personnage est envoyé à\nl'aventure, si vous avez joué un autre personnage ce tour-ci,\nvous pouvez placer la carte du dessus de votre pioche dans\nvotre réserve d'encre, face cachée et épuisée."
+  },
+  "Bruno Madrigal - Seeing the Future": {
+    "name": "Bruno Madrigal - Voit dans le futur",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/156_94fb7d199754637767ad0faa0446523bc18c165b.jpg",
+    "text": "CHANGER L'ISSUE Lorsque vous jouez ce personnage,\nvous pouvez choisir un joueur et regarder la carte du\ndessus de sa pioche. Placez-la sur ou sous sa pioche."
+  },
+  "Kida - Discovering the Unknown": {
+    "name": "Kida - Découvre l'inconnu",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/157_f721c2ff4a47a79a407a233fca52ea17f3ce74cd.jpg",
+    "text": "LIRE LES RUNES Chaque fois que ce personnage\nest envoyé à l'aventure, si 2 cartes ou plus ont\nété placées dans votre défausse ce tour-ci,\nvous pouvez placer la carte du dessus de votre\npioche dans votre réserve d'encre, face cachée\net épuisée."
+  },
+  "Kashekim - Wise King": {
+    "name": "Kashekim - Roi sage",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/158_887e1a7cbdcff0392def3281248e5f7656440595.jpg",
+    "text": "LA FORCE DE LA MÉMOIRE À la fin de votre tour, si 2\ncartes ou plus ont été placées dans votre défausse ce\ntour-ci, vous pouvez placer la carte du dessus de votre\npioche dans votre réserve d'encre, face cachée."
+  },
+  "Minnie Mouse - Practical Traveler": {
+    "name": "Minnie - Voyageuse à l'esprit pratique",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/219_2465ece6ad67ea55401ea7757e775c06267c6671.jpg",
+    "text": "ŒIL AVERTI Chaque fois que ce personnage est\nenvoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, gagnez 1 éclat de Lore."
+  },
+  "Kida - Crystal Scion": {
+    "name": "Kida - Élue du Crystal",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/236_8d1a55cd081ffa4909777ca4c64fb6e2928f8ae3.jpg",
+    "text": "Alter 6 ⬡\nDÉFERLEMENT DE PUISSANCE Lorsque vous jouez ce\npersonnage, chaque joueur peut placer jusqu'à 5 cartes de\nsa défausse dans sa réserve d'encre, face cachée et épuisée.\nLE CHEMIN RÉVÉLÉ 7 ⬡ — Regardez les 2 premières cartes\nde votre pioche. Ajoutez-en une à votre main et placez\nl'autre sous votre pioche."
+  },
+  "Ursula - Deal Maker": {
+    "name": "Ursula - Conclut un marché",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/161_dae7ebf3adcb2aa5e0b84030aa9a604a23e46d94.jpg",
+    "text": "UNE BONNE AFFAIRE Lorsque vous jouez ce personnage\net chaque fois qu'il est envoyé à l'aventure, choisissez\nun autre personnage qui gagne +1 ◊ pour le reste\nde ce tour.\nÀ PROPOS À la fin de votre tour, si ce personnage est\népuisé, choisissez l'un de vos personnages et placez-le\ndans votre réserve d'encre, face cachée et épuisé."
+  },
+  "Someone Will Lose His Head": {
+    "name": "On leur coupera la tête",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/162_e3af360ff71fea3fe59168a5c8564c6514d6958e.jpg",
+    "text": "(Vous pouvez ⟳ un personnage coûtant 3 ou plus pour\nchanter cette chanson gratuitement.)\nChaque personnage adverse subit -2 ¤ pour le reste\nde ce tour."
+  },
+  "What Else Can I Do?": {
+    "name": "Que sais-je faire d'autre ?",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/237_a6ad5ae270b3755f47822f1b4330ebba323abb99.jpg",
+    "text": "Regardez les 2 cartes du dessus de votre pioche.\nAjoutez-en une à votre main et placez l'autre dans\nvotre réserve d'encre, face cachée et épuisée.\nSi un personnage a chanté cette chanson, vos\npersonnages gagnent Hors d'atteinte jusqu'au\ndébut de votre prochain tour."
+  },
+  "Escape Plan": {
+    "name": "Plan d'évasion",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/164_5b0d08bcf1d76fe6e0e887580e6381c9ef93de36.jpg",
+    "text": "Vous ne pouvez pas jouer cette action, sauf si 2 cartes\nou plus ont été placées dans votre défausse ce tour-ci.\nChaque joueur choisit 2 de ses personnages et les\nplace dans sa réserve d'encre, face cachée et épuisés."
+  },
+  "Salvage Operation": {
+    "name": "Réparations de fortune",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/165_8c977363f4ba0073c921a06567651664197ea6ac.jpg",
+    "text": "Renvoyez dans votre main une carte Objet de votre défausse.\nSi vous avez un personnage ayant 4 ⛉ ou plus en jeu, gagnez\n1 éclat de Lore."
+  },
+  "Julieta's Arepas": {
+    "name": "Arepas de Julieta",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/166_5c3cde07acf4bc6cd803fe5fd9da9ae6dd2d7828.jpg",
+    "text": "REMÈDE SAVOUREUX Au début de votre tour, si vous\navez un personnage Madrigal en jeu, choisissez un\npersonnage et retirez jusqu'à 2 de ses dommages.\nÇA A FAIT L'AFFAIRE ⟳ — Si vous avez retiré des\ndommages d'un personnage ce tour-ci, gagnez 1\néclat de Lore."
+  },
+  "Ranger Plane": {
+    "name": "Socissoplane",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/167_953395bb5afb834b50e4a20e6e5c815ec150503f.jpg",
+    "text": "SOUTIEN AÉRIEN Vos personnages gagnent Soutien.\n(Lorsque ces personnages sont envoyés à l'aventure, vous\npouvez ajouter leur ¤ à celle d'un autre personnage au\nchoix pour le reste de ce tour.)\nGRANDE PORTANCE ⟳ — Choisissez un personnage ayant\n10 ¤ ou plus qui gagne +3 ◊ pour le reste de ce tour."
+  },
+  "Gadget's Goggles": {
+    "name": "Lunettes de Gadget",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/168_130f81c918e3d4ac3dff66aeef59070b8b3cdaf6.jpg",
+    "text": "VISION AMÉLIORÉE ⟳, 1 ⬡ — Regardez les 2 cartes du\ndessus de votre pioche. Placez l'une d'elles sur votre\npioche et l'autre dessous."
+  },
+  "Shepherd's Journal": {
+    "name": "Le Manuscrit du Berger",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/169_1b053156206cc35f384e3d747fa3d2cc16d7c004.jpg",
+    "text": "NOTES EN MARGE Lorsque vous jouez cet objet, vous\npouvez regarder la carte du dessus de votre pioche.\nPlacez-la sur votre pioche ou dans votre défausse.\nLA CLÉ DE L'ÉNIGME 1 ⬡, Bannissez cet objet —\nRenvoyez dans votre main une autre carte Objet de\nvotre défausse."
+  },
+  "Casa Madrigal - Courtyard": {
+    "name": "Casa Madrigal - Patio",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/170_0a1b66ed3df553f13f948bc7aaaa400f3aec8a36.jpg",
+    "text": "MAISON QUI SOIGNE Chaque fois qu'un personnage sur ce lieu est\nenvoyé à l'aventure, vous pouvez lui retirer jusqu'à 2 dommages. Ensuite,\nvous pouvez retirer jusqu'à 2 dommages de ce lieu."
+  },
+  "Pocahontas - Steadfast Traveler": {
+    "name": "Pocahontas - Voyageuse infatigable",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/220_729cf19a0cc6ae3543c09b6227b81e9259a97b42.jpg",
+    "text": "ÂME VAGABONDE Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, renvoyez dans votre main une\ncarte Lieu de votre défausse."
+  },
+  "Syndrome - Out for Revenge": {
+    "name": "Syndrome - En quête de vengeance",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/238_a0f19bb4b688783d525c90b2a4dccf04faa56b8f.jpg",
+    "text": "Alter 4 ⬡\nFAIRE UN MONOLOGUE ! Chaque fois que ce personnage\nest envoyé à l'aventure, renvoyez dans votre main une\ncarte Personnage Robot de votre défausse. Ensuite,\nvous pouvez jouer gratuitement un personnage Robot\ncoûtant 8 ou moins, via sa capacité Alter ou non."
+  },
+  "Omnidroid - V.8": {
+    "name": "Omnidroïde - V.8",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/173_ad3f4233d2fb0b3b23d7bead08d4d60d26f10d31.jpg"
+  },
+  "Angus - Mighty Horse": {
+    "name": "Angus - Puissant cheval",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/174_fe91035693619bc30b677517dec115649f35bc19.jpg",
+    "text": "FONCEUR Lorsque vous jouez ce personnage,\nchoisissez un personnage qui gagne Agilité pour\nle reste de ce tour. (Ce personnage-là peut défier\ncomme s'il avait Insaisissable.)"
+  },
+  "Fergus - King of DunBroch": {
+    "name": "Fergus - Roi de DunBroch",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/175_a956ebb0910c24897e38332673f1768eaf92317d.jpg",
+    "text": "Rempart (Ce personnage peut entrer en jeu épuisé.\nLorsqu'il défie l'un de vos personnages, un personnage\nadverse doit, s'il le peut, choisir l'un de vos personnages\navec Rempart.)"
+  },
+  "Wee Dingwall - Scrappy Lad": {
+    "name": "Le Petit Dingwall - Garçon bagarreur",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/176_d18710b157ddfa64e0faa6a361523d1891e5b2af.jpg",
+    "text": "Offensif +2 (Lorsqu'il défie, ce personnage\ngagne +2 ¤.)"
+  },
+  "Incrediboy - Buddy Pine": {
+    "name": "Indestructiboy - Buddy Pine",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/221_b78da0847598a47eba51922db8b0e5e9242586c1.jpg",
+    "text": "TROP FAN Lorsque vous jouez ce personnage, si un\npersonnage Héros est en jeu, gagnez 1 éclat de Lore.\nATTENTION, SPOILER Ce personnage peut être\nconsidéré comme un personnage nommé Syndrome\npour la capacité Alter."
+  },
+  "Violet Parr - At Wits' End": {
+    "name": "Violette Parr - À bout de nerfs",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/178_8567f4ac185d63c9b627b0f3eee899d947a3a9ca.jpg",
+    "text": "Agilité (Ce personnage peut défier comme s'il\navait Insaisissable.)"
+  },
+  "Mrs. Incredible - Helen Parr": {
+    "name": "Mme Indestructible - Hélène Parr",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/179_caecc4d5369e03148d735bb4861a93d3187ed88b.jpg",
+    "text": "ENCOURAGEMENTS Lorsque vous jouez ce\npersonnage, choisissez un personnage qui gagne\nOffensif +2 pour le reste de ce tour. (Lorsqu'il défie,\nce personnage-là gagne +2 ¤.)"
+  },
+  "Young Macintosh - Proud Son": {
+    "name": "Le fils Macintosh - Fils fier",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/180_efb7dda9d60ef165d97677c30769226bab97e4a2.jpg"
+  },
+  "Lord Macintosh - Wiry and High-Strung": {
+    "name": "Seigneur Macintosh - Mince et nerveux",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/181_260dcc3e76b16f13a7e49bd98898ffa1d638911e.jpg",
+    "text": "PRENDRE SUR SOI Ce personnage peut entrer en jeu épuisé\npour donner Résistance +2 à un personnage de votre choix\njusqu'au début de votre prochain tour. (Les dommages\ninfligés à ce personnage sont réduits de 2.)"
+  },
+  "Fat Cat - Felonious Feline": {
+    "name": "Catox - Félon félin",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/182_e75e1fd963bfa1cfbfe00b5ceec73bbc44940b35.jpg",
+    "text": "Résistance +1 (Les dommages infligés à ce\npersonnage sont réduits de 1.)"
+  },
+  "Rat Capone - Rodent Gangster": {
+    "name": "Rat Capone - Rongeur Gangster",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/183_e910637f6e19f6bc3e32ddc630989a653f029b1f.jpg",
+    "text": "TAIS-TOI ! Tant que ce personnage n'a aucun\ndommage sur lui, il gagne +3 ¤."
+  },
+  "Omnidroid - V.9": {
+    "name": "Omnidroïde - V.9",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/184_a093e7750fa82072d00868bc358a5cc2dc03aaaa.jpg",
+    "text": "Alter 2 ⬡ (Vous pouvez payer 2 ⬡ pour jouer ce\npersonnage sur l'un de vos personnages nommé\nOmnidroïde.)\nENNEMI DÉTECTÉ Lorsque vous jouez ce\npersonnage via sa capacité Alter, vous pouvez\nchoisir un personnage et lui infliger 2 dommages."
+  },
+  "Mr. Incredible - Taking Out the Trash": {
+    "name": "M. Indestructible - Élimine les déchets",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/185_ce47ceecade14f70b343a9c0418571067c6f4cc7.jpg",
+    "text": "BAM ! Lorsque vous jouez ce personnage, vous pouvez\nchoisir un personnage Robot ou Méchant adverse et lui\ninfliger 2 dommages."
+  },
+  "Lord Dingwall - Bullheaded": {
+    "name": "Seigneur Dingwall - Têtu comme une mule",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/186_3d070d1c4bf30b89c55cc7577c99f4fe0f076551.jpg",
+    "text": "DISCOURS BELLIQUEUX Ce personnage peut entrer en\njeu épuisé pour donner Offensif +3 à un personnage de\nvotre choix pour le reste de ce tour. (Lorsqu'il défie, ce\npersonnage-là gagne +3 ¤.)"
+  },
+  "Fat Cat - Criminal Businessman": {
+    "name": "Catox - Homme d'affaires criminel",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/187_e45b3c6956bf0eeb3e996357ae728aff30d5eaf0.jpg",
+    "text": "INVESTISSEMENT RENTABLE Vos lieux gagnent\nRésistance +1. (Les dommages infligés à ces lieux\nsont réduits de 1.)"
+  },
+  "Maudie - Exasperated Nursemaid": {
+    "name": "Maude - Nourrice exaspérée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/188_5f0faa9203d37cabf7e36bd7f9b1ffabc75142a2.jpg",
+    "text": "Résistance +1 (Les dommages infligés à ce\npersonnage sont réduits de 1.)"
+  },
+  "Goofy - Determined Traveler": {
+    "name": "Dingo - Voyageur déterminé",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/189_6e255172953235b17ff8375dcc2c0f8940144251.jpg",
+    "text": "CHUTE DE PIERRES Chaque fois que ce personnage\nest envoyé à l'aventure, si vous avez joué un autre\npersonnage ce tour-ci, vous pouvez choisir un\npersonnage ou un lieu et lui infliger 1 dommage."
+  },
+  "Omnidroid - V.10": {
+    "name": "Omnidroïde - V.10",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/190_9a6573d0cadfcffe2b76abb71caa50ad6f9bb4b1.jpg",
+    "text": "Alter 4 ⬡ (Vous pouvez payer 4 ⬡ pour jouer ce\npersonnage sur l'un de vos personnages nommé\nOmnidroïde.)\nÉLECTRO-ARMURE Tant qu'il y a une carte sous ce\npersonnage, il gagne Résistance +2. (Les dommages\ninfligés à ce personnage sont réduits de 2.)"
+  },
+  "Merida - Formidable Archer": {
+    "name": "Merida - Archère redoutable",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/242_48835ffed468cf5209509a054c7c31382fdae1ae.jpg",
+    "text": "CARQUOIS PLEIN Lorsque vous jouez ce personnage,\nvous pouvez renvoyer dans votre main une carte Action\nnommée Triple flèche de votre défausse.\nVISÉE STABLE Chaque fois que l'une de vos actions\ninflige des dommages à un personnage adverse, infligez\n2 dommages à ce personnage-là."
+  },
+  "John Smith - Skillful Explorer": {
+    "name": "John Smith - Explorateur compétent",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/192_6a2cc3a9a856e122128952f9f43ee967bba588f3.jpg"
+  },
+  "Gizmoduck - Duckburg Defender": {
+    "name": "Robotik - Défenseur de Donaldville",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/193_f5662e07cef7b7bb543cd3b115c6b37ddab8f571.jpg",
+    "text": "Résistance +1 (Les dommages infligés à ce\npersonnage sont réduits de 1.)\nSÉCURITÉ INTÉGRÉE Tant que vous n'avez aucune\ncarte en main, vos adversaires ne peuvent pas\njouer d'action coûtant 4 ou plus."
+  },
+  "Fergus - Outpost Builder": {
+    "name": "Fergus - Bâtisseur d'avant-postes",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/194_e3fbee37b3d9f9a56e35206ce65dff2059d0c291.jpg",
+    "text": "L'ENDROIT IDÉAL Durant votre tour, chaque fois que\nce personnage devient épuisé, vous pouvez jouer\ngratuitement un lieu coûtant 4 ou moins de votre main\nou votre défausse.\nTIENT LE POSTE Tant que ce personnage est sur un lieu,\nchaque fois qu'un lieu est défié et banni, vous pouvez\nchoisir un personnage et lui infliger 4 dommages."
+  },
+  "Mrs. Incredible - Determined Rescuer": {
+    "name": "Mme Indestructible - Sauveteuse déterminée",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/239_f4cd628d35e2909e4dc419e87fed00df1188cc5c.jpg",
+    "text": "Alter 5 ⬡\nREPLI Vos personnages gagnent Résistance +1.\nREGROUPEMENT Durant votre tour, chaque fois qu'un\nautre personnage est banni via un défi, vous pouvez\nchoisir un personnage Super et le redresser. Si vous\nle faites, ce personnage-là ne peut pas être envoyé à\nl'aventure pour le reste de ce tour."
+  },
+  "Diablo - Stone Servant": {
+    "name": "Diablo - Serviteur de pierre",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/196_2c6340581288923d42ca714f65ad2974a2e21985.jpg",
+    "text": "CRUELLE INTENTION Tant que vous avez un\npersonnage Méchant en jeu, ce personnage-ci\ngagne +2 ¤ et +1 ◊.\nLIEN MALÉFIQUE Tant que ce personnage est\népuisé, vos personnages Méchant ne peuvent pas\nêtre défiés."
+  },
+  "Three Arrows": {
+    "name": "Triple flèche",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/222_431c3537c1152e03dce5c086f2eb365c292042c4.jpg",
+    "text": "Choisissez un personnage et infligez-lui 2 dommages. Ensuite,\nvous pouvez choisir un autre personnage et lui infliger 1 dommage."
+  },
+  "Card Advantage": {
+    "name": "Cartes bonus",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/198_bf371d59ba041debecab9ea157bb525a05095c81.jpg",
+    "text": "Si un personnage adverse a été banni via un défi ce\ntour-ci, piochez 2 cartes."
+  },
+  "Touch the Sky": {
+    "name": "Vers le ciel",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/240_29dd86486a782a68432ae8f3ed6e103c05a76aba.jpg",
+    "text": "Déplacez gratuitement l'un de vos personnages\nsur un lieu. Ensuite, piochez autant de cartes que\nle ◊ de ce lieu."
+  },
+  "Plunger Crossbow": {
+    "name": "Ventouse au harpon",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/200_9a2cedae46e224f6016a198cf1b9ffc3725957e9.jpg",
+    "text": "TECHNOLOGIE DE SUCCION ⟳, 2 ⬡ — Piochez une\ncarte puis défaussez une carte."
+  },
+  "Syndrome's Remote": {
+    "name": "Télécommande de Syndrome",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/201_07b1970d02bd5b45df2c4d98e6583b5f31b4e1e8.jpg",
+    "text": "ÉNERGIE AU POINT ZÉRO ⟳, 2 ⬡ — Choisissez\nun personnage qui ne peut pas défier durant son\nprochain tour.\nAPPRENDRE DE LEURS ÉCHECS Chaque fois qu'un\npersonnage Robot est banni, vous pouvez bannir cet\nobjet pour défausser votre main et piocher 2 cartes."
+  },
+  "Club Door": {
+    "name": "Porte du Club",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/202_ea938048a2882edd40d109b6de97845f68ab3bd9.jpg",
+    "text": "BON RETOUR, MONSIEUR Vous pouvez jouer cet objet\ngratuitement si vous avez un personnage nommé\nCatox en jeu.\nRÉSERVÉ AUX CHATS COOLS Vos lieux ne peuvent pas\nêtre défiés par des personnages coûtant 2 ou moins."
+  },
+  "Fat Cat's Club - Seedy Headquarters": {
+    "name": "Club de Catox - Repaire malfamé",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/203_7e422977c0fb676108bba4794185b5490da4f427.jpg"
+  },
+  "The Island of Nomanisan - Syndrome's Headquarters": {
+    "name": "Île de Nomanisan - Quartier général de Syndrome",
+    "image": "https://api.lorcana.ravensburger.com/images/fr/set12/204_0a40a4746de052fcbf9bcf9d94d619ca7dc027aa.jpg",
+    "text": "RECHERCHE ET DÉVELOPPEMENT Vos personnages Robot sur ce lieu gagnent +1 ¤\net +1 ⛉.\nCOUP BAS Une fois durant votre tour, lorsqu'un personnage sur ce lieu en bannit un\nautre via un défi, vous pouvez choisir un personnage et lui infliger 2 dommages."
+  }
+};
+
+// Helper : nom localise d'une carte
+// Priorite : CARD_DATA_FR (fichier upload) > CARD_NAMES_FR (mapping integre) > nom EN
+function cardName(card) {
+  if (!card) return '';
+  if (currentLang === 'fr') {
+    const dataEntry = CARD_DATA_FR[card.name];
+    if (dataEntry && dataEntry.name) return dataEntry.name;
+    if (CARD_NAMES_FR[card.name]) return CARD_NAMES_FR[card.name];
+  }
+  return card.name;
+}
+
+// Helper : URL image localisee (FR ou EN selon disponibilite)
+function cardImage(card) {
+  if (!card) return '';
+  if (currentLang === 'fr' && CARD_DATA_FR[card.name] && CARD_DATA_FR[card.name].image) {
+    return CARD_DATA_FR[card.name].image;
+  }
+  return card.image;
+}
+
+// Helper : texte / description localisee
+function cardText(card) {
+  if (!card) return '';
+  if (currentLang === 'fr' && CARD_DATA_FR[card.name] && CARD_DATA_FR[card.name].text) {
+    return CARD_DATA_FR[card.name].text;
+  }
+  return card.text || '';
+}
+
+// Helper : couleur localisee
+function colorName(color) {
+  const lang = currentLang || 'fr';
+  return (COLOR_NAMES[lang] && COLOR_NAMES[lang][color]) || color;
+}
+
+// Helper : rarete localisee
+function rarityName(rarity) {
+  const lang = currentLang || 'fr';
+  return (RARITY_NAMES[lang] && RARITY_NAMES[lang][rarity]) || rarity;
+}
+
+// Helper : type localise
+function typeName(type) {
+  const lang = currentLang || 'fr';
+  return (TYPE_NAMES[lang] && TYPE_NAMES[lang][type]) || type;
+}
+
+// Switch langue (utilise par les boutons FR/EN de l'ecran initial)
+function selectLanguage(lang) {
+  if (lang !== 'fr' && lang !== 'en') return;
+  currentLang = lang;
+  try { localStorage.setItem('lorcana_lang', lang); } catch(e) {}
+  // Cacher l'ecran de selection
+  const sel = document.getElementById('langSelector');
+  if (sel) sel.style.display = 'none';
+  // Appliquer toutes les traductions au DOM
+  applyTranslations();
+  // Re-render si une partie est en cours
+  if (typeof renderPool === 'function' && pool.length > 0) renderPool();
+  if (typeof renderDeck === 'function') renderDeck();
+}
+
+// Applique les traductions a tous les elements [data-i18n] de la page
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const txt = t(key);
+    if (el.tagName === 'INPUT') {
+      el.placeholder = txt;
+    } else {
+      el.innerHTML = txt;
+    }
+  });
+}
+
+// Re-affiche le selecteur de langue (bouton dans le footer)
+function resetLanguage() {
+  const sel = document.getElementById('langSelector');
+  if (sel) sel.style.display = 'flex';
+}
+
+// Charger un fichier JSON de mapping FR fourni par l'utilisateur
+// Format attendu : { "Card Name EN": "Nom Carte FR", ... }
+function handleFrMapUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Le fichier peut etre direct {EN:FR,...} OU {EN: {name:..., image:..., text:...}, ...}
+      const payload = data.CARD_NAMES_FR_FULL || data.mapping || data;
+
+      if (typeof payload !== 'object' || Array.isArray(payload)) {
+        alert('Format invalide : le fichier doit etre un objet JSON');
+        return;
+      }
+
+      // Detecter le format : enrichi (objets avec name/image/text) ou simple (juste strings)
+      const firstVal = Object.values(payload)[0];
+      const isEnriched = firstVal && typeof firstVal === 'object' && !Array.isArray(firstVal);
+
+      let countNames = 0, countImages = 0, countTexts = 0;
+
+      if (isEnriched) {
+        // Format enrichi : { "EN": {name, image, text}, ... }
+        for (const [enName, entry] of Object.entries(payload)) {
+          if (typeof entry !== 'object') continue;
+          if (!CARD_DATA_FR[enName]) CARD_DATA_FR[enName] = {};
+          if (entry.name) { CARD_DATA_FR[enName].name = entry.name; CARD_NAMES_FR[enName] = entry.name; countNames++; }
+          if (entry.image) { CARD_DATA_FR[enName].image = entry.image; countImages++; }
+          if (entry.text) { CARD_DATA_FR[enName].text = entry.text; countTexts++; }
+        }
+        // Sauvegarde
+        try {
+          localStorage.setItem('lorcana_fr_data', JSON.stringify(CARD_DATA_FR));
+          localStorage.setItem('lorcana_fr_mapping', JSON.stringify(CARD_NAMES_FR));
+        } catch(err) {}
+        alert(`✓ Donnees FR chargees :\n  • ${countNames} noms\n  • ${countImages} images\n  • ${countTexts} descriptions\n\nSauvegarde pour les prochaines visites.`);
+      } else {
+        // Format simple : { "EN": "FR name", ... } - retrocompatibilite
+        let count = 0;
+        for (const [k, v] of Object.entries(payload)) {
+          if (typeof v === 'string') {
+            CARD_NAMES_FR[k] = v;
+            count++;
+          }
+        }
+        try {
+          localStorage.setItem('lorcana_fr_mapping', JSON.stringify(CARD_NAMES_FR));
+        } catch(err) {}
+        alert(`✓ ${count} noms FR charges.\nSauvegarde pour les prochaines visites.`);
+      }
+
+      // Re-render si on est en mode FR
+      if (currentLang === 'fr') {
+        if (typeof renderPool === 'function' && pool.length > 0) renderPool();
+        if (typeof renderDeck === 'function') renderDeck();
+      }
+    } catch (err) {
+      alert('Erreur lors de la lecture du fichier : ' + err.message);
+    }
+  };
+  reader.onerror = () => alert('Impossible de lire le fichier.');
+  reader.readAsText(file, 'utf-8');
+
+  event.target.value = '';
+}
+
+// Au chargement : restaurer les mappings FR depuis localStorage si dispo
+(function loadStoredFrMapping() {
+  try {
+    const storedData = localStorage.getItem('lorcana_fr_data');
+    if (storedData) {
+      const parsed = JSON.parse(storedData);
+      if (parsed && typeof parsed === 'object') {
+        Object.assign(CARD_DATA_FR, parsed);
+        // Aussi propager les noms pour CARD_NAMES_FR
+        for (const [k, v] of Object.entries(parsed)) {
+          if (v && v.name && !CARD_NAMES_FR[k]) CARD_NAMES_FR[k] = v.name;
+        }
+      }
+    }
+    const storedMapping = localStorage.getItem('lorcana_fr_mapping');
+    if (storedMapping) {
+      const parsed = JSON.parse(storedMapping);
+      if (parsed && typeof parsed === 'object') {
+        Object.assign(CARD_NAMES_FR, parsed);
+      }
+    }
+  } catch(e) {}
+})();
+
+// Au chargement : si pas de langue choisie -> afficher l'ecran de selection
+// Sinon, appliquer la langue sauvegardee
+window.addEventListener('DOMContentLoaded', () => {
+  if (!currentLang) {
+    const sel = document.getElementById('langSelector');
+    if (sel) sel.style.display = 'flex';
+  } else {
+    applyTranslations();
+  }
+});
 
 // =========================================================================
 // BOOSTER GENERATION
@@ -2434,7 +4060,7 @@ function openBooster(idx) {
         <span class="label">Wilds Unknown</span>
       </div>
       <div class="face front">
-        <img src="${c.image}" alt="${c.name}" loading="lazy">
+        <img src="${cardImage(c)}" alt="${cardName(c)}" loading="lazy">
         <span class="rarity-badge rarity-${rcls}">${shortRarity(c.rarity)}${c.foil ? ' ◆' : ''}</span>
       </div>
     `;
@@ -2776,7 +4402,7 @@ function showOpeningResults(allCards) {
               const border = c.rarity === 'Iconic' ? '2px solid #ffd966' : c.rarity === 'Enchanted' ? '2px solid #ff7eb6' : c.rarity === 'Epic' ? '2px solid #d4af71' : '1px solid var(--line)';
               const glow = isUltra ? `box-shadow:0 0 12px rgba(255,215,100,0.4);` : '';
               return `<div style="position:relative; border:${border}; border-radius:4px; overflow:hidden; aspect-ratio:63/88; ${glow}">
-                <img src="${c.image}" alt="${c.name}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
+                <img src="${cardImage(c)}" alt="${cardName(c)}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy">
                 ${c.foil ? '<div style="position:absolute;top:3px;right:3px;background:linear-gradient(135deg,#ffd966,#ff7eb6,#6ec3ff);color:#000;font-family:JetBrains Mono,monospace;font-size:0.5rem;font-weight:700;padding:1px 4px;border-radius:2px;letter-spacing:0.05em;">FOIL</div>' : ''}
               </div>`;
             }).join('')}
@@ -2809,7 +4435,7 @@ function showOpeningResults(allCards) {
     `;
 
     const cardImg = `<div style="position:relative; width:200px; aspect-ratio:63/88; border:3px solid ${tierColor}; border-radius:6px; overflow:hidden; box-shadow:0 0 30px ${tierColor};">
-      <img src="${card.image}" alt="${card.name}" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <img src="${cardImage(card)}" alt="${cardName(card)}" style="width:100%;height:100%;object-fit:cover;display:block;">
       ${card.foil ? '<div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,215,100,0.2),rgba(255,100,220,0.2),rgba(120,220,255,0.2));mix-blend-mode:screen;animation:foilShine 2s linear infinite;"></div>' : ''}
     </div>`;
 
@@ -3056,7 +4682,7 @@ function renderPool() {
     if (inDeck >= qty) div.classList.add('disabled');
     const rcls = card.rarity.replace(' ', '');
     div.innerHTML = `
-      <img src="${card.image}" alt="${card.name}" loading="lazy">
+      <img src="${cardImage(card)}" alt="${cardName(card).replace(/"/g, '&quot;')}" loading="lazy">
       <button class="tile-info-btn" type="button" aria-label="Voir details" title="Voir details">ⓘ</button>
       <span class="tile-rarity rarity-${rcls}">${shortRarity(card.rarity)}</span>
       ${qty > 1 ? `<span class="qty-badge">×${qty}</span>` : ''}
@@ -3127,7 +4753,13 @@ function matchesFilters(card) {
     }
     if (!matchCost) return false;
   }
-  if (f.search && !card.name.toLowerCase().includes(f.search)) return false;
+  // Recherche : matche le nom EN ET FR (si dispo)
+  if (f.search) {
+    const enMatch = card.name.toLowerCase().includes(f.search);
+    const frName = CARD_NAMES_FR[card.name];
+    const frMatch = frName ? frName.toLowerCase().includes(f.search) : false;
+    if (!enMatch && !frMatch) return false;
+  }
   return true;
 }
 
@@ -3257,11 +4889,14 @@ function renderDeckList() {
     byType[t].push({ ...c, qty: d.qty });
   }
 
-  const typeLabels = { Character: 'Personnages', Action: 'Actions', Item: 'Objets', Location: 'Lieux', Autre: 'Autres' };
+  // Labels de type traduits
+  const typeLabels = currentLang === 'fr'
+    ? { Character: 'Personnages', Action: 'Actions', Item: 'Objets', Location: 'Lieux', Autre: 'Autres' }
+    : { Character: 'Characters', Action: 'Actions', Item: 'Items', Location: 'Locations', Autre: 'Other' };
   let html = '';
   for (const [t, list] of Object.entries(byType)) {
     if (!list.length) continue;
-    list.sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name));
+    list.sort((a, b) => a.cost - b.cost || cardName(a).localeCompare(cardName(b)));
     const subtotal = list.reduce((s, c) => s + c.qty, 0);
     const label = typeLabels[t] || t;
     html += `<div class="deck-list-group"><h4>${label} · ${subtotal}</h4>`;
@@ -3270,8 +4905,9 @@ function renderDeckList() {
       const isUltra = ['Epic', 'Enchanted', 'Iconic'].includes(c.rarity);
       const ultraClass = isUltra ? ' is-ultra' : '';
       const rarityBadge = isUltra ? `<span class="rarity-badge rarity-${c.rarity.replace(' ','')}" style="margin-left:4px;font-size:0.55rem;padding:1px 4px">${shortRarity(c.rarity)}</span>` : '';
-      // Echappement HTML pour les noms avec caracteres speciaux
-      const safeName = String(c.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Echappement HTML pour les noms avec caracteres speciaux (utilise le nom localise)
+      const dispName = cardName(c);
+      const safeName = String(dispName).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       html += `
         <div class="deck-list-item${ultraClass}" onclick="openModal(CARDS.find(x=>x.id===${c.id}))">
           <span class="qty">${c.qty}×</span>
@@ -3855,6 +5491,79 @@ function exportDeck() {
   });
 }
 
+// Genere la liste de deck au format texte standard
+// Format duels.ink / dreamborn : "<qty> <Card name> (<set>-<id>)"
+// Le set Wilds Unknown est le set 12, et l'id est l'id officiel de la carte (1-242)
+function buildDeckText(opts) {
+  const withSetId = opts && opts.withSetId;
+  const sorted = deck
+    .map(d => ({ ...CARDS.find(c => c.id === d.id), qty: d.qty }))
+    .filter(c => c)
+    .sort((a, b) => (a.cost || 0) - (b.cost || 0) || a.name.localeCompare(b.name));
+  if (withSetId) {
+    return sorted.map(c => `${c.qty} ${c.name} (12-${c.id})`).join('\n');
+  }
+  return sorted.map(c => `${c.qty} ${c.name}`).join('\n');
+}
+
+// Bouton "Jouer sur Duels.ink" : import direct via URL ?import=<base64>
+function playOnDuelsInk() {
+  const total = totalDeckSize();
+  if (!total) {
+    alert(currentLang === 'fr'
+      ? 'Le deck est vide. Construis un deck d\'au moins 40 cartes avant de lancer une partie.'
+      : 'Deck is empty. Build at least 40 cards before playing.');
+    return;
+  }
+  if (total < 40) {
+    if (!confirm(currentLang === 'fr'
+      ? `Ton deck n'a que ${total} cartes (40 minimum requis pour jouer en sealed).\n\nContinuer quand même vers Duels.ink ?`
+      : `Your deck only has ${total} cards (40 minimum required for sealed).\n\nContinue to Duels.ink anyway?`)) {
+      return;
+    }
+  }
+
+  // Generer le format texte avec set-id (compatible duels.ink import)
+  // Exemple ligne : "4 Buzz Lightyear - Space Ranger (12-76)"
+  const deckText = buildDeckText({ withSetId: true });
+
+  // Encoder en base64 (gestion des caracteres UTF-8 type 'é', 'ç')
+  // btoa ne supporte pas les caracteres > 255, donc on passe par TextEncoder
+  let base64;
+  try {
+    // Encodage UTF-8 propre via TextEncoder + conversion bytes -> base64
+    const bytes = new TextEncoder().encode(deckText);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    base64 = btoa(binary);
+  } catch(e) {
+    // Fallback simple
+    base64 = btoa(unescape(encodeURIComponent(deckText)));
+  }
+
+  // Construire l'URL d'import direct
+  const importUrl = `https://duels.ink/decks/new?import=${encodeURIComponent(base64)}`;
+
+  // Copier aussi dans le presse-papier en backup (au cas ou l'URL pose probleme)
+  const copyPromise = navigator.clipboard
+    ? navigator.clipboard.writeText(deckText).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = deckText;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+      })
+    : Promise.resolve();
+
+  copyPromise.finally(() => {
+    // Ouvrir l'URL d'import direct dans un nouvel onglet
+    window.open(importUrl, '_blank', 'noopener');
+  });
+}
+
 // =========================================================================
 // MODAL
 // =========================================================================
@@ -3874,19 +5583,19 @@ function openModal(card) {
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
   mc.innerHTML = `
-    <div class="modal-img"><img src="${esc(card.image)}" alt="${esc(card.name)}"></div>
+    <div class="modal-img"><img src="${esc(cardImage(card))}" alt="${esc(cardName(card))}"></div>
     <div class="modal-info">
       <button class="close-x" id="modalCloseBtn">×</button>
       <div class="mono" style="font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-quiet); margin-bottom: 0.4rem;">
-        <span class="dot dot-${esc(card.color)}"></span>${esc(card.color)} · ${esc(card.rarity)} · ${esc(card.type)}${card.inkwell ? ' · Encrable' : ''}
+        <span class="dot dot-${esc(card.color)}"></span>${esc(colorName(card.color))} · ${esc(rarityName(card.rarity))} · ${esc(typeName(card.type))}${card.inkwell ? ' · ' + t('inkable') : ''}
       </div>
-      <h3>${esc(card.name)}</h3>
+      <h3>${esc(cardName(card))}</h3>
       <div class="stats">${stats}</div>
-      <div class="text">${esc(card.text || '(aucun texte)')}</div>
+      <div class="text">${esc(cardText(card) || '(aucun texte)')}</div>
       <div class="modal-actions">
-        <span class="mono" style="font-size:0.75rem; color:var(--ink-quiet); align-self:center;">Pool: ${inPool} · Deck: ${inDeck}</span>
-        <button class="btn btn-sm" id="modalAddBtn" ${inDeck >= inPool ? 'disabled' : ''} style="background:var(--success);color:#fff;font-weight:600;">+ Ajouter au deck</button>
-        <button class="btn-ghost btn btn-sm" id="modalRemoveBtn" ${inDeck === 0 ? 'disabled' : ''} style="border-color:var(--danger);color:var(--danger);">− Retirer</button>
+        <span class="mono" style="font-size:0.75rem; color:var(--ink-quiet); align-self:center;">${t('poolLabel')}: ${inPool} · ${t('deckLabel')}: ${inDeck}</span>
+        <button class="btn btn-sm" id="modalAddBtn" ${inDeck >= inPool ? 'disabled' : ''} style="background:var(--success);color:#fff;font-weight:600;">${t('modalAdd')}</button>
+        <button class="btn-ghost btn btn-sm" id="modalRemoveBtn" ${inDeck === 0 ? 'disabled' : ''} style="border-color:var(--danger);color:var(--danger);">${t('modalRemove')}</button>
       </div>
     </div>`;
 
@@ -3897,9 +5606,7 @@ function openModal(card) {
     closeModal();
   };
   document.getElementById('modalRemoveBtn').onclick = () => {
-    if (confirm(`Retirer "${card.name}" du deck ?`)) {
-      removeFromDeck(card.id);
-    }
+    removeFromDeck(card.id);
     closeModal();
   };
 
@@ -4324,12 +6031,19 @@ async function openScanner(target) {
   await scannerVideo.play();
 
   // Initialiser le worker Tesseract si pas deja fait
-  if (!scannerWorker) {
-    showScannerStatus('Initialisation OCR...');
-    scannerWorker = await Tesseract.createWorker('eng');
+  // Le worker depend de la langue : 'fra' pour francais, 'eng' pour anglais
+  // On stocke la langue du worker pour le re-creer si l'user change de langue
+  const wantedOcrLang = currentLang === 'fr' ? 'fra' : 'eng';
+  if (!scannerWorker || scannerWorker._ocrLang !== wantedOcrLang) {
+    showScannerStatus('Initialisation OCR (' + wantedOcrLang + ')...');
+    if (scannerWorker) {
+      try { await scannerWorker.terminate(); } catch(e) {}
+    }
+    scannerWorker = await Tesseract.createWorker(wantedOcrLang);
+    scannerWorker._ocrLang = wantedOcrLang;
   }
 
-  showScannerStatus('Pret · Vise le nom de la carte et tap "Capturer"');
+  showScannerStatus(t('scannerReady'));
 }
 
 function loadScript(src) {
@@ -4410,10 +6124,19 @@ function handleScanResult(rawText) {
   }
 
   // Fuzzy match : score chaque carte selon similarite
-  const candidates = CARDS.map(c => ({
-    card: c,
-    score: fuzzyScore(cleaned.toLowerCase(), c.name.toLowerCase())
-  })).sort((a, b) => b.score - a.score);
+  // En mode FR : comparer contre le nom FR (s'il existe) ET EN, garder le meilleur
+  const queryLower = cleaned.toLowerCase();
+  const candidates = CARDS.map(c => {
+    const enScore = fuzzyScore(queryLower, c.name.toLowerCase());
+    let frScore = 0;
+    if (currentLang === 'fr' && CARD_NAMES_FR[c.name]) {
+      frScore = fuzzyScore(queryLower, CARD_NAMES_FR[c.name].toLowerCase());
+    }
+    return {
+      card: c,
+      score: Math.max(enScore, frScore)
+    };
+  }).sort((a, b) => b.score - a.score);
 
   const top3 = candidates.slice(0, 3);
 
@@ -4467,11 +6190,12 @@ function showScanCandidates(rawText, candidates) {
     const conf = (c.score * 100).toFixed(0);
     const confColor = c.score >= 0.7 ? 'var(--success)' : c.score >= 0.4 ? 'var(--accent)' : 'var(--ink-quiet)';
     const isTop = i === 0;
+    const dispName = cardName(c.card);
     return `<div style="padding:10px;margin-bottom:8px;background:${isTop ? 'rgba(212,145,90,0.12)' : 'var(--bg-3)'};border:${isTop ? '1px solid var(--accent)' : '1px solid transparent'};border-radius:6px;cursor:pointer;display:flex;gap:12px;align-items:center;-webkit-tap-highlight-color:transparent;min-height:64px" onclick="confirmScan(${c.card.id})">
       <img src="${c.card.image}" style="width:54px;height:76px;object-fit:cover;border-radius:3px;flex-shrink:0" loading="lazy">
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600;font-size:0.95rem;color:var(--ink);line-height:1.3;margin-bottom:3px">${c.card.name}</div>
-        <div style="font-size:0.7rem;color:var(--ink-quiet);font-family:'JetBrains Mono',monospace">${c.card.color} · ${c.card.rarity} · Coût ${c.card.cost}</div>
+        <div style="font-weight:600;font-size:0.95rem;color:var(--ink);line-height:1.3;margin-bottom:3px">${dispName}</div>
+        <div style="font-size:0.7rem;color:var(--ink-quiet);font-family:'JetBrains Mono',monospace">${colorName(c.card.color)} · ${rarityName(c.card.rarity)} · ${currentLang === 'fr' ? 'Coût' : 'Cost'} ${c.card.cost}</div>
       </div>
       <div style="font-size:0.85rem;font-family:'JetBrains Mono',monospace;color:${confColor};font-weight:700;flex-shrink:0">${conf}%</div>
     </div>`;
@@ -4479,11 +6203,11 @@ function showScanCandidates(rawText, candidates) {
 
   document.getElementById('scanCandidatesContainer').innerHTML = `
     <div style="max-width:600px;margin:0 auto;">
-      <div style="font-size:0.7rem;color:var(--ink-quiet);font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.1em;text-transform:uppercase">Choisis la bonne carte ↓</div>
-      <div style="font-size:0.7rem;color:var(--ink-dim);font-style:italic;margin-bottom:10px">OCR a lu : "${rawText}"</div>
+      <div style="font-size:0.7rem;color:var(--ink-quiet);font-family:'JetBrains Mono',monospace;margin-bottom:10px;letter-spacing:0.1em;text-transform:uppercase">${t('scannerChooseRight')}</div>
+      <div style="font-size:0.7rem;color:var(--ink-dim);font-style:italic;margin-bottom:10px">${t('scannerOcrRead')} : "${rawText}"</div>
       ${list}
       <div style="margin-top:12px;text-align:center">
-        <button class="btn btn-ghost" onclick="hideScanCandidates()" style="padding:0.6rem 1.5rem">↻ Réessayer</button>
+        <button class="btn btn-ghost" onclick="hideScanCandidates()" style="padding:0.6rem 1.5rem">${t('scannerRetry')}</button>
       </div>
     </div>
   `;
