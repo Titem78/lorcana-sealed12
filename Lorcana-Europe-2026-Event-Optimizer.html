@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="Optimiseur de side events — Disney Lorcana European Championship 2026, Disneyland Paris.">
+<title>Lorcana Europe 2026 — Event Optimizer</title>
+
+<style>
+:root{
+  --bg1:#090e1c; --bg2:#10192c;
+  --panel:#141c30; --panel2:#1c2740; --panel3:#101728;
+  --border:#303c5c; --border-soft:#26304a;
+  --text:#f4f6fb; --muted:#9ba8c3;
+  --gold:#f3c95e; --green:#6fe2a5; --red:#ff8585;
+  --blue:#78c8ff; --purple:#c7a6ff;
+  --radius:14px;
+  --shadow:0 6px 24px rgba(0,0,0,.28);
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+
+body{
+  margin:0;
+  background:var(--bg1);
+  background-image:linear-gradient(180deg,var(--bg1),var(--bg2) 60%,var(--bg1));
+  background-attachment:fixed;
+  color:var(--text);
+  font-family:var(--font);
+  font-size:15px;
+  line-height:1.45;
+}
+
+/* ---------- header + tabs ---------- */
+header{
+  background:rgba(11,17,32,.96);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border);
+  position:sticky; top:0; z-index:100;
+}
+.header-inner{
+  max-width:1550px; margin:auto;
+  padding:14px max(16px,env(safe-area-inset-left)) 0;
+}
+h1{
+  margin:0 0 4px;
+  color:var(--gold);
+  font-size:clamp(19px,3.4vw,30px);
+  line-height:1.15;
+  letter-spacing:.2px;
+}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+.tabs{
+  display:flex; gap:4px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{
+  border:0; background:transparent; color:var(--muted);
+  padding:12px 14px; min-height:46px;
+  cursor:pointer; font-weight:700; font-size:14px;
+  font-family:inherit;
+  border-bottom:3px solid transparent;
+  white-space:nowrap; border-radius:8px 8px 0 0;
+  transition:color .15s,background .15s;
+}
+.tab-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.tab-btn[aria-selected="true"]{color:#fff;border-bottom-color:var(--gold)}
+.tab-btn:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,
+summary:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+main{max-width:1550px;margin:auto;padding:20px max(16px,env(safe-area-inset-left)) 60px}
+.tab-content{display:none}
+.tab-content.active{display:block;animation:fade .18s ease-out}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- panels ---------- */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.panel > h2{margin:0 0 14px;font-size:18px;letter-spacing:.2px}
+.panel > h2 .hint{font-weight:400;font-size:13px;color:var(--muted);margin-left:8px}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat{
+  background:var(--panel2);
+  border:1px solid var(--border-soft);
+  border-radius:10px;padding:12px 13px;
+}
+.stat .label{color:var(--muted);font-size:12px;line-height:1.3}
+.stat .value{margin-top:4px;font-size:clamp(19px,4.4vw,25px);font-weight:700;font-variant-numeric:tabular-nums}
+
+label{display:block;color:var(--muted);font-size:12px;margin-bottom:5px;font-weight:600}
+.grid > div > label{min-height:2.6em} /* aligne les champs même si le libellé passe sur 2 lignes */
+.grid > div{display:flex;flex-direction:column;justify-content:flex-end}
+input,select{
+  width:100%;
+  border:1px solid var(--border);
+  background:#0e1527;color:#fff;
+  padding:11px 10px;border-radius:9px;
+  font-size:16px; /* évite le zoom auto iOS */
+  font-family:inherit;
+  min-height:44px;
+}
+input[readonly]{background:#0b1120;color:var(--muted);cursor:default}
+input[type="checkbox"]{width:22px;height:22px;min-height:0;accent-color:var(--gold);cursor:pointer}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px}
+
+button.primary,button.ghost{
+  font-family:inherit;font-weight:700;font-size:15px;
+  border-radius:9px;padding:12px 18px;min-height:46px;cursor:pointer;
+  transition:opacity .15s,background .15s;
+}
+button.primary{background:var(--gold);color:#101010;border:0}
+button.primary:hover{opacity:.88}
+button.ghost{background:transparent;color:var(--gold);border:1px solid var(--border)}
+button.ghost:hover{background:rgba(243,201,94,.1)}
+.btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;align-items:center}
+
+/* ---------- tables ---------- */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:10px 9px;border-bottom:1px solid var(--border-soft);text-align:right;white-space:nowrap}
+th{color:var(--muted);font-size:12px;background:var(--panel);position:sticky;top:0;z-index:1;font-weight:700}
+th:first-child,td:first-child{text-align:left;white-space:normal}
+tbody tr:hover{background:#202b45}
+
+/* ---------- couleurs ---------- */
+.gold{color:var(--gold)}.green{color:var(--green)}.red{color:var(--red)}
+.blue{color:var(--blue)}.purple{color:var(--purple)}
+.muted{color:var(--muted)}
+
+.small{color:var(--muted);font-size:13px;line-height:1.55}
+.note{
+  border-left:4px solid var(--gold);
+  padding:10px 12px;background:#191d2b;border-radius:8px;margin:0 0 14px;
+}
+.note.danger{border-left-color:var(--red);background:#22161c}
+.note.info{border-left-color:var(--blue);background:#141d2b}
+.note:last-child{margin-bottom:0}
+
+/* ---------- cartes d'événement ---------- */
+.ev{
+  background:var(--panel2);
+  border:1px solid var(--border-soft);
+  border-left:4px solid var(--blue);
+  border-radius:10px;padding:11px 13px;margin:9px 0;
+}
+.ev.pick{border-left-color:var(--gold)}
+.ev-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 12px}
+.ev-time{color:var(--gold);font-weight:700;font-variant-numeric:tabular-nums;min-width:48px}
+.ev-name{font-weight:700;flex:1 1 180px}
+.ev-price{font-weight:700;white-space:nowrap}
+.ev-sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+.ev-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.chip{
+  display:inline-block;padding:4px 9px;border-radius:999px;
+  font-size:12px;font-weight:600;
+  background:#28324c;border:1px solid var(--border-soft);
+}
+.chip.green{background:#16341f;border-color:#215c37}
+.chip.blue{background:#132c42;border-color:#1f4e73}
+.chip.purple{background:#291f42;border-color:#453170}
+.chip.gold{background:#3a2f14;border-color:#6b5623}
+
+.day-title{
+  color:var(--gold);margin:22px 0 8px;font-size:16px;
+  border-bottom:1px solid var(--border-soft);padding-bottom:6px;
+}
+.day-title:first-child{margin-top:6px}
+
+.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;background:#293550;color:#dce5fa;white-space:normal}
+.badge.estimate{background:#493b1f;color:#ffe6a0}
+.badge.official{background:#174431;color:#adffd5}
+.badge.unknown{background:#4b2222;color:#ffb0b0}
+
+.section-title{margin:24px 0 12px;color:var(--purple);font-size:16px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:13px;
+  background:var(--panel3);border:1px solid var(--border-soft);border-radius:10px;padding:12px 14px;margin:14px 0}
+
+details.box{
+  background:var(--panel3);border:1px solid var(--border-soft);
+  border-radius:10px;padding:0;margin:14px 0;
+}
+details.box > summary{
+  cursor:pointer;padding:12px 14px;font-weight:700;font-size:14px;list-style:none;
+  display:flex;align-items:center;gap:8px;
+}
+details.box > summary::-webkit-details-marker{display:none}
+details.box > summary::before{content:"▸";color:var(--gold);transition:transform .15s}
+details.box[open] > summary::before{transform:rotate(90deg)}
+details.box .box-body{padding:0 14px 14px}
+
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:6px}
+.kv-item{background:var(--panel2);border:1px solid var(--border-soft);border-radius:10px;padding:11px 12px}
+.kv-item .k{font-size:12px;color:var(--muted)}
+.kv-item .v{font-size:19px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+
+.pw-row-total{font-weight:700}
+#pwTable td:nth-child(2){text-align:left;white-space:normal}
+#pwTable td:first-child{width:72px}
+#pwTable th:nth-child(2){text-align:left}
+hr.sep{border:0;border-top:1px solid var(--border);margin:14px 0}
+
+/* ---------- responsive ---------- */
+@media(min-width:821px){
+  table.wide{min-width:900px}
+}
+@media(max-width:820px){
+  .panel{padding:14px}
+  th{position:static}
+  table.stackable thead{display:none}
+  table.stackable tbody tr{
+    display:flex;flex-direction:column;background:var(--panel2);
+    border:1px solid var(--border-soft);border-radius:10px;
+    padding:8px 10px;margin-bottom:10px;
+  }
+  table.stackable tbody tr:hover{background:var(--panel2)}
+  table.stackable td{
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    border:0;padding:5px 0;white-space:normal;text-align:right;
+  }
+  table.stackable td+td{border-top:1px dashed var(--border-soft)}
+  table.stackable td::before{
+    content:attr(data-label);color:var(--muted);font-size:12px;
+    text-align:left;flex:0 0 auto;font-weight:600;
+  }
+  table.stackable td:first-child{
+    font-weight:700;font-size:15px;text-align:left;
+    border-bottom:1px solid var(--border-soft);
+    padding-bottom:8px;margin-bottom:2px;
+  }
+  table.stackable td:first-child{justify-content:flex-start}
+  table.stackable td:first-child::before{display:none}
+
+  /* Prize Wall : le nom du lot devient le titre de la carte, la case à cocher passe dessous */
+  #pwTable td[data-label="Lot"]{
+    order:-1;font-weight:700;font-size:15px;text-align:left;
+    border-top:0;border-bottom:1px solid var(--border-soft);padding-bottom:8px;
+  }
+  #pwTable td[data-label="Lot"]{justify-content:flex-start}
+  #pwTable td[data-label="Lot"]::before{display:none}
+  #pwTable td:first-child{
+    order:0;font-weight:400;font-size:inherit;
+    border-bottom:0;padding-bottom:5px;margin-bottom:0;
+    justify-content:space-between;
+  }
+  #pwTable td:first-child::before{display:block;content:attr(data-label)}
+  #pwTable td+td{border-top:0}
+  .stats{grid-template-columns:repeat(auto-fit,minmax(132px,1fr))}
+  main{padding-left:12px;padding-right:12px}
+  .header-inner{padding-left:12px;padding-right:12px}
+}
+
+@media print{
+  header,.tabs,button,.note{display:none!important}
+  .tab-content{display:block!important}
+  body{background:#fff;color:#000}
+  .panel{border:1px solid #ccc;box-shadow:none;background:#fff}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="header-inner">
+  <h1>Disney Lorcana European Championship 2026</h1>
+  <div class="subtitle">Disneyland Paris · 11–13 septembre 2026</div>
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab-btn" role="tab" id="tab-optimizer" aria-controls="optimizer" aria-selected="true">⚡ Optimiseur</button>
+    <button class="tab-btn" role="tab" id="tab-prizewall" aria-controls="prizewall" aria-selected="false" tabindex="-1">🎁 Prize Wall</button>
+    <button class="tab-btn" role="tab" id="tab-planning" aria-controls="planning" aria-selected="false" tabindex="-1">📅 Planning</button>
+    <button class="tab-btn" role="tab" id="tab-farm" aria-controls="farm" aria-selected="false" tabindex="-1">🔁 Farm On-Demand</button>
+  </div>
+</div>
+</header>
+
+<main>
+
+<!-- ============== ONGLET 1 : OPTIMISEUR ============== -->
+<section id="optimizer" class="tab-content active" role="tabpanel" aria-labelledby="tab-optimizer">
+
+<div class="panel">
+  <h2>Optimiseur principal <span class="hint">recalcul automatique à chaque changement</span></h2>
+
+  <div class="grid">
+    <div><label for="optBudget">Budget Side Events (€)</label>
+      <input id="optBudget" type="number" value="500" min="0" step="5" inputmode="numeric"></div>
+
+    <div><label for="optWinrate">Winrate estimé (%)</label>
+      <input id="optWinrate" type="number" value="60" min="0" max="100" step="1" inputmode="numeric"></div>
+
+    <div><label for="optNewPack">Booster Attack of the Vine (€)</label>
+      <input id="optNewPack" type="number" value="5" min="0" step="0.1" inputmode="decimal"></div>
+
+    <div><label for="optOldPack">Ancien booster Chaos (€)</label>
+      <input id="optOldPack" type="number" value="6" min="0" step="0.1" inputmode="decimal"></div>
+
+    <div><label for="optTicketValue">Valeur de 10 tickets (€)</label>
+      <input id="optTicketValue" type="number" value="1.25" min="0" step="0.05" inputmode="decimal"></div>
+
+    <div><label for="optBadge">Tickets déjà acquis (badge)</label>
+      <input id="optBadge" type="number" value="160" min="0" step="10" inputmode="numeric"></div>
+
+    <div><label for="optObjective">Objectif</label>
+      <select id="optObjective">
+        <option value="tickets">Maximum de tickets</option>
+        <option value="gross">Maximum valeur reçue</option>
+        <option value="net">Maximum valeur nette</option>
+      </select></div>
+
+    <div><label for="optTeam">Team Trios possible</label>
+      <select id="optTeam"><option value="yes">Oui</option><option value="no">Non</option></select></div>
+
+    <div><label for="optBuffer">Marge entre deux events (minutes)</label>
+      <input id="optBuffer" type="number" value="10" min="0" step="5" inputmode="numeric"></div>
+  </div>
+
+  <h3 class="section-title">Situation Main Event</h3>
+
+  <div class="grid">
+    <div><label for="optFriday">Vendredi</label>
+      <select id="optFriday">
+        <option value="lcq">LCQ le matin</option>
+        <option value="free">Libre</option>
+      </select></div>
+
+    <div><label for="optLcqEnd">Disponible vendredi à partir de</label>
+      <input id="optLcqEnd" type="time" value="13:00"></div>
+
+    <div><label for="optSaturday">Samedi</label>
+      <select id="optSaturday">
+        <option value="free">Libre pour les sides</option>
+        <option value="main">Main Event — journée bloquée</option>
+      </select></div>
+
+    <div><label for="optSunday">Dimanche</label>
+      <select id="optSunday">
+        <option value="free">Libre pour les sides</option>
+        <option value="top16">Top 16 Main Event — journée bloquée</option>
+      </select></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="primary" id="btnOptimize" type="button">CALCULER LE MEILLEUR PARCOURS</button>
+    <span class="small" id="optStatus"></span>
+  </div>
+
+  <details class="box" id="economyBox">
+    <summary>💶 Économie du ticket — combien vaut réellement un ticket ?</summary>
+    <div class="box-body">
+      <p class="small" style="margin-top:0">
+        Deux références indépendantes servent à estimer la valeur d'un ticket. Elles ne
+        donnent pas le même résultat : compare-les avant de fixer la valeur utilisée par l'optimiseur.
+      </p>
+
+      <div class="grid">
+        <div><label for="ecoFarmCost">Réf. Pack Rush On-Demand — coût total (€)</label>
+          <input id="ecoFarmCost" type="number" value="30" min="0" step="0.5" inputmode="decimal"></div>
+        <div><label for="ecoFarmTickets">Réf. Pack Rush On-Demand — tickets obtenus</label>
+          <input id="ecoFarmTickets" type="number" value="40" min="1" step="1" inputmode="numeric"></div>
+        <div><label for="ecoPrizeTickets">Réf. Prize Wall — coût d'un booster (tickets)</label>
+          <input id="ecoPrizeTickets" type="number" value="40" min="1" step="1" inputmode="numeric"></div>
+      </div>
+
+      <div class="kv" style="margin-top:12px">
+        <div class="kv-item">
+          <div class="k">Coût d'acquisition (Pack Rush 2 joueurs)</div>
+          <div class="v gold" id="ecoFarmOut">—</div>
+        </div>
+        <div class="kv-item">
+          <div class="k">Contre-valeur Prize Wall (booster)</div>
+          <div class="v blue" id="ecoPrizeOut">—</div>
+        </div>
+        <div class="kv-item">
+          <div class="k">Écart entre les deux références</div>
+          <div class="v purple" id="ecoGapOut">—</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="ghost" type="button" id="ecoApplyFarm">Utiliser la référence Pack Rush</button>
+        <button class="ghost" type="button" id="ecoApplyPrize">Utiliser la référence Prize Wall</button>
+      </div>
+
+      <p class="note danger small" id="ecoWarning" style="margin-top:14px"></p>
+    </div>
+  </details>
+</div>
+
+<div class="panel">
+  <h2>Résultat</h2>
+  <div class="stats">
+    <div class="stat"><div class="label">Dépense totale</div><div class="value gold" id="optResultCost">—</div></div>
+    <div class="stat"><div class="label">Tickets attendus</div><div class="value green" id="optResultTickets">—</div></div>
+    <div class="stat"><div class="label">Total avec badge</div><div class="value green" id="optResultWithBadge">—</div></div>
+    <div class="stat"><div class="label">Valeur boosters</div><div class="value blue" id="optResultProducts">—</div></div>
+    <div class="stat"><div class="label">Valeur Prize Wall estimée</div><div class="value blue" id="optResultPrize">—</div></div>
+    <div class="stat"><div class="label">Valeur nette estimée</div><div class="value" id="optResultNet">—</div></div>
+  </div>
+  <div id="optSchedule"></div>
+</div>
+
+<div class="panel">
+  <h2>Comparaison des formats</h2>
+  <div class="table-wrap">
+    <table class="wide stackable">
+      <thead><tr>
+        <th>Format</th><th>Prix</th><th>Boosters</th>
+        <th>Tickets selon les victoires</th>
+        <th>Tickets moyens</th><th>Tickets / €</th>
+        <th>Valeur boosters</th><th>Valeur nette</th>
+      </tr></thead>
+      <tbody id="optFormatTable"></tbody>
+    </table>
+  </div>
+  <p class="small" style="margin-top:10px">
+    « Tickets moyens » applique le winrate saisi. « Valeur nette » = boosters + tickets valorisés − prix d'entrée.
+  </p>
+</div>
+</section>
+
+<!-- ============== ONGLET 2 : PRIZE WALL ============== -->
+<section id="prizewall" class="tab-content" role="tabpanel" aria-labelledby="tab-prizewall">
+
+<div class="panel">
+  <h2>Ma liste Prize Wall</h2>
+
+  <div class="grid">
+    <div><label for="pwOwned">Tickets déjà possédés</label>
+      <input id="pwOwned" type="number" value="160" min="0" step="10" inputmode="numeric"></div>
+    <div><label for="pwExpected">Tickets prévisionnels des sides</label>
+      <input id="pwExpected" type="number" value="0" min="0" step="10" inputmode="numeric"></div>
+    <div><label for="pwAvailable">Total disponible</label>
+      <input id="pwAvailable" type="text" readonly></div>
+    <div><label for="pwTarget">Coût total de ma sélection</label>
+      <input id="pwTarget" type="text" readonly></div>
+    <div><label for="pwDifference">Tickets restants / manquants</label>
+      <input id="pwDifference" type="text" readonly></div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:9px;margin-top:12px">
+    <input type="checkbox" id="pwSync" checked>
+    <label for="pwSync" style="margin:0;font-size:13px;color:var(--text)">
+      Synchroniser « tickets prévisionnels » avec le résultat de l'optimiseur
+    </label>
+  </div>
+
+  <p class="note small" style="margin-top:14px">
+    Les lots sont ceux que nous avons identifiés pour le Prize Wall 2026.
+    Les coûts Paris ne sont pas encore officiels : les chiffres saisis sont modifiables
+    et doivent être considérés comme des estimations de travail.
+  </p>
+
+  <div class="table-wrap">
+    <table class="stackable">
+      <thead><tr>
+        <th>Je veux</th><th>Lot</th><th>Prix tickets</th>
+        <th>Quantité</th><th>Total</th><th>Statut</th>
+      </tr></thead>
+      <tbody id="pwTable"></tbody>
+    </table>
+  </div>
+
+  <div class="btn-row">
+    <button class="ghost" type="button" id="pwClear">Tout décocher</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Résumé de ma sélection</h2>
+  <div id="pwSelection"></div>
+</div>
+</section>
+
+<!-- ============== ONGLET 3 : PLANNING ============== -->
+<section id="planning" class="tab-content" role="tabpanel" aria-labelledby="tab-planning">
+
+<div class="panel">
+  <h2>Planning complet des Side Events</h2>
+
+  <div class="grid">
+    <div><label for="planningFilter">Afficher</label>
+      <select id="planningFilter">
+        <option value="all">Tous les formats</option>
+        <option value="constructed">Constructed</option>
+        <option value="sealed">Sealed / Pack Rush</option>
+        <option value="sprint">Ink Sprint</option>
+      </select></div>
+    <div><label for="planningDay">Jour</label>
+      <select id="planningDay">
+        <option value="all">Tous les jours</option>
+        <option value="Vendredi">Vendredi 11/09</option>
+        <option value="Samedi">Samedi 12/09</option>
+        <option value="Dimanche">Dimanche 13/09</option>
+      </select></div>
+  </div>
+
+  <p class="small" style="margin-top:12px">
+    Les heures de début viennent de Fanfinity. Les heures de fin sont des estimations
+    de durée utilisées par l'optimiseur, pas des horaires officiels.
+  </p>
+
+  <div class="legend">
+    <div><span class="green">●</span> <b>Entrée</b> = tickets garantis à l'inscription</div>
+    <div><span class="blue">●</span> <b>Victoire</b> = tickets par ronde remportée</div>
+    <div><span class="purple">●</span> <b>Perfect</b> = bonus si toutes les rondes sont gagnées</div>
+    <div><span class="gold">●</span> <b>Max</b> = total maximum possible</div>
+    <div>📦 = boosters inclus dans l'inscription</div>
+  </div>
+
+  <div id="planningContent"></div>
+</div>
+
+<div class="panel">
+  <h2>Récapitulatif des gains</h2>
+  <div class="table-wrap">
+    <table class="wide stackable">
+      <thead><tr>
+        <th>Format</th><th>Prix</th><th>Structure</th><th>Produit</th>
+        <th>Entrée</th><th>Par ronde jouée</th><th>Par victoire</th>
+        <th>Bonus perfect</th><th>Maximum</th>
+      </tr></thead>
+      <tbody id="planningFormatSummary"></tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<!-- ============== ONGLET 4 : FARM ============== -->
+<section id="farm" class="tab-content" role="tabpanel" aria-labelledby="tab-farm">
+
+<div class="panel">
+  <h2>Farm — On-Demand Pack Rush</h2>
+
+  <p class="note small">
+    Le On-Demand Pack Rush est traité séparément des Ink Sprint Pack Rush programmés.
+    Les paramètres officiels Paris 2026 ne sont pas publiés : tous les champs sont modifiables.
+  </p>
+
+  <div class="grid">
+    <div><label for="farmPreset">Barème utilisé</label>
+      <select id="farmPreset">
+        <option value="historic">Historique anciens challenges (2 j. = 30 €, 10/10 + 20 gagnant)</option>
+        <option value="paris">Barème Paris 2026 estimé (25 €, 120 / 120)</option>
+        <option value="custom">Personnalisé</option>
+      </select></div>
+
+    <div><label for="farmPrice">Prix par joueur / run (€)</label>
+      <input id="farmPrice" type="number" value="15" min="0" step="0.5" inputmode="decimal"></div>
+
+    <div><label for="farmPacks">Boosters par joueur / run</label>
+      <input id="farmPacks" type="number" value="2" min="0" step="1" inputmode="numeric"></div>
+
+    <div><label for="farmPackValue">Valeur d'un booster (€)</label>
+      <input id="farmPackValue" type="number" value="5" min="0" step="0.1" inputmode="decimal"></div>
+
+    <div><label for="farmWinTickets">Tickets du gagnant (total)</label>
+      <input id="farmWinTickets" type="number" value="30" min="0" step="1" inputmode="numeric"></div>
+
+    <div><label for="farmLossTickets">Tickets du perdant (total)</label>
+      <input id="farmLossTickets" type="number" value="10" min="0" step="1" inputmode="numeric"></div>
+
+    <div><label for="farmDuration">Durée moyenne d'un run (minutes)</label>
+      <input id="farmDuration" type="number" value="30" min="1" step="5" inputmode="numeric"></div>
+
+    <div><label for="farmPlayers">Nombre de joueurs de ton groupe</label>
+      <input id="farmPlayers" type="number" value="2" min="1" step="1" inputmode="numeric"></div>
+
+    <div><label for="farmBudget">Budget total du groupe (€)</label>
+      <input id="farmBudget" type="number" value="200" min="0" step="5" inputmode="numeric"></div>
+
+    <div><label for="farmTime">Temps disponible (minutes)</label>
+      <input id="farmTime" type="number" value="180" min="0" step="15" inputmode="numeric"></div>
+
+    <div><label for="farmMode">Mode</label>
+      <select id="farmMode">
+        <option value="group">On joue entre nous</option>
+        <option value="individual">Je farm seul contre le field</option>
+      </select></div>
+
+    <div><label for="farmWinrate">Winrate contre le field (%)</label>
+      <input id="farmWinrate" type="number" value="60" min="0" max="100" step="1" inputmode="numeric"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="primary" type="button" id="btnFarm">CALCULER LE FARM</button>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Résultat Farm</h2>
+  <div class="stats">
+    <div class="stat"><div class="label">Runs possibles</div><div class="value gold" id="farmRuns">—</div></div>
+    <div class="stat"><div class="label">Temps réellement utilisé</div><div class="value gold" id="farmTimeUsed">—</div></div>
+    <div class="stat"><div class="label">Coût total</div><div class="value gold" id="farmCost">—</div></div>
+    <div class="stat"><div class="label">Boosters récupérés</div><div class="value blue" id="farmTotalPacks">—</div></div>
+    <div class="stat"><div class="label">Valeur boosters</div><div class="value blue" id="farmProductValue">—</div></div>
+    <div class="stat"><div class="label">Tickets minimum</div><div class="value green" id="farmMinTickets">—</div></div>
+    <div class="stat"><div class="label">Tickets moyens</div><div class="value green" id="farmAvgTickets">—</div></div>
+    <div class="stat"><div class="label">Tickets maximum</div><div class="value green" id="farmMaxTickets">—</div></div>
+    <div class="stat"><div class="label">Tickets / € moyens</div><div class="value purple" id="farmRatio">—</div></div>
+    <div class="stat"><div class="label">Coût de 10 tickets</div><div class="value purple" id="farmTicketCost">—</div></div>
+  </div>
+  <div id="farmExplanation" style="margin-top:14px"></div>
+</div>
+
+<div class="panel">
+  <h2>Comparaison Farm vs Side classique</h2>
+  <div class="table-wrap">
+    <table class="wide stackable">
+      <thead><tr>
+        <th>Option</th><th>Coût</th><th>Temps</th><th>Boosters</th>
+        <th>Tickets moyens</th><th>Tickets / €</th><th>Tickets / heure</th>
+      </tr></thead>
+      <tbody id="farmComparison"></tbody>
+    </table>
+  </div>
+  <p class="small" style="margin-top:10px">
+    Le temps de la ligne Farm correspond au temps réellement consommé par les runs, pas au temps disponible.
+  </p>
+  <p class="note danger small" id="farmScaleWarning" style="display:none"></p>
+</div>
+</section>
+
+</main>
+
+<script>
+"use strict";
+
+/* =========================================================
+   HELPERS
+========================================================= */
+const $  = (id) => document.getElementById(id);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+
+const num = (id, fallback = 0) => {
+  const v = parseFloat(String($(id).value).replace(",", "."));
+  return Number.isFinite(v) ? v : fallback;
+};
+
+const nfInt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const nf2   = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const fmtInt = (n) => nfInt.format(Math.round(n));
+const fmtEur = (n) => nf2.format(n) + " €";
+const fmtEur0 = (n) => nfInt.format(Math.round(n)) + " €";
+
+const timeToMinutes = (t) => {
+  const [h, m] = String(t).split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
+};
+const minutesToTime = (m) => {
+  const mm = ((m % 1440) + 1440) % 1440;
+  return String(Math.floor(mm / 60)).padStart(2, "0") + ":" + String(mm % 60).padStart(2, "0");
+};
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const DAYS = ["Vendredi", "Samedi", "Dimanche"];
+const DAY_OFFSET = { Vendredi: 0, Samedi: 1440, Dimanche: 2880 };
+const DAY_DATE = { Vendredi: "11/09", Samedi: "12/09", Dimanche: "13/09" };
+
+/* =========================================================
+   DONNÉES — FORMATS
+
+   Modèle unifié (remplace l'ancien hack "fixedTickets") :
+     tickets = base
+             + rounds * perRound          (tickets par ronde jouée)
+             + wins   * perWin            (tickets par ronde gagnée)
+             + perfectBonus si wins === rounds
+   L'Entry-Level est donc 80 d'entrée + 80 par ronde jouée = 320 garantis,
+   ce qui réconcilie enfin le tableau du planning et le calcul de l'optimiseur.
+========================================================= */
+const FORMATS = {
+  core:           { name:"Core Constructed",            category:"constructed", price:25,  packs:0,  oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:120, perRound:0,  perWin:120, perfectBonus:120, duration:195 },
+  double:         { name:"Core Constructed Double-Up",  category:"constructed", price:50,  packs:0,  oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:240, perRound:0,  perWin:240, perfectBonus:240, duration:195 },
+  entry:          { name:"Entry-Level Core Constructed",category:"constructed", price:25,  packs:0,  oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:80,  perRound:80, perWin:0,   perfectBonus:0,   duration:195, guaranteed:true },
+  sealed:         { name:"Sealed Deck",                 category:"sealed",      price:45,  packs:6,  oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:120, perRound:0,  perWin:120, perfectBonus:120, duration:210 },
+  box:            { name:"Full Box Sealed",             category:"sealed",      price:120, packs:24, oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:120, perRound:0,  perWin:120, perfectBonus:0,   duration:240 },
+  infinity:       { name:"Infinity Constructed",        category:"constructed", price:25,  packs:0,  oldPacks:0,  rounds:3, structure:"3 rondes BO3",       base:120, perRound:0,  perWin:120, perfectBonus:120, duration:195 },
+  chaos:          { name:"Chaos Sealed",                category:"sealed",      price:75,  packs:4,  oldPacks:12, rounds:3, structure:"3 rondes BO3",       base:120, perRound:0,  perWin:120, perfectBonus:120, duration:225 },
+  team:           { name:"Team Trios Sealed / joueur",  category:"sealed",      price:50,  packs:8,  oldPacks:0,  rounds:3, structure:"3 rondes BO3 équipe",base:120, perRound:0,  perWin:120, perfectBonus:120, duration:255, team:true },
+  sprintCore:     { name:"Ink Sprint Core",             category:"sprint",      price:20,  packs:0,  oldPacks:0,  rounds:2, structure:"2 rondes BO1",       base:120, perRound:0,  perWin:120, perfectBonus:0,   duration:90 },
+  sprintInfinity: { name:"Ink Sprint Infinity",         category:"sprint",      price:20,  packs:0,  oldPacks:0,  rounds:2, structure:"2 rondes BO1",       base:120, perRound:0,  perWin:120, perfectBonus:0,   duration:90 },
+  packrush:       { name:"Ink Sprint Pack Rush",        category:"sprint",      price:25,  packs:2,  oldPacks:0,  rounds:2, structure:"2 rondes BO1",       base:120, perRound:0,  perWin:120, perfectBonus:0,   duration:90 }
+};
+
+/* =========================================================
+   DONNÉES — PLANNING
+========================================================= */
+const EVENTS = [
+  ["Vendredi","13:00","double"],["Vendredi","13:30","entry"],["Vendredi","15:00","sealed"],
+  ["Vendredi","16:00","box"],["Vendredi","16:30","infinity"],["Vendredi","17:30","sprintCore"],
+  ["Vendredi","18:00","packrush"],
+
+  ["Samedi","09:00","double"],["Samedi","09:15","entry"],["Samedi","09:30","sealed"],
+  ["Samedi","09:45","chaos"],["Samedi","10:00","infinity"],["Samedi","10:15","team"],
+  ["Samedi","13:00","double"],["Samedi","13:15","entry"],["Samedi","13:30","core"],
+  ["Samedi","14:30","sealed"],["Samedi","14:45","chaos"],["Samedi","15:45","team"],
+  ["Samedi","17:00","double"],["Samedi","17:00","core"],["Samedi","17:15","entry"],
+  ["Samedi","19:45","packrush"],
+
+  ["Dimanche","09:00","double"],["Dimanche","09:15","entry"],["Dimanche","09:30","sealed"],
+  ["Dimanche","09:45","chaos"],["Dimanche","10:00","infinity"],["Dimanche","10:15","team"],
+  ["Dimanche","13:00","double"],["Dimanche","13:15","entry"],["Dimanche","13:30","core"],
+  ["Dimanche","14:30","sealed"],["Dimanche","14:45","chaos"],
+  ["Dimanche","17:00","packrush"],["Dimanche","17:00","sprintInfinity"],["Dimanche","17:15","sprintCore"]
+].map(([day, start, format], index) => ({
+  index, day, date: DAY_DATE[day], start, format,
+  startMin: DAY_OFFSET[day] + timeToMinutes(start),
+  endMin:   DAY_OFFSET[day] + timeToMinutes(start) + FORMATS[format].duration
+}));
+
+/* =========================================================
+   DONNÉES — PRIZE WALL
+========================================================= */
+const PRIZES = [
+  { name:"Booster Lorcana",                     cost:40,    status:"Estimation historique" },
+  { name:"Stand Out — promo non-foil",          cost:100,   status:"Estimation" },
+  { name:"Down in New Orleans — promo non-foil",cost:100,   status:"Estimation" },
+  { name:"Headless Horseman — Cursed Rider",    cost:200,   status:"Estimation" },
+  { name:"Tinker Bell — Insistent Fairy",       cost:300,   status:"Estimation" },
+  { name:"Dragon Fire — promo non-foil",        cost:100,   status:"Estimation" },
+  { name:"Let It Go — promo non-foil",          cost:100,   status:"Estimation" },
+  { name:"Mulan — Charging Ahead",              cost:300,   status:"Estimation niveau intermédiaire" },
+  { name:"Simba — Pride Protector",             cost:500,   status:"Estimation niveau supérieur" },
+  { name:"Elsa — Ice Maker",                    cost:700,   status:"Historique comparable" },
+  { name:"Pegasus — Gift for Hercules",         cost:100,   status:"Estimation entrée" },
+  { name:"Playmat Mulan",                       cost:3200,  status:"Historique comparable" },
+  { name:"Playmat Simba",                       cost:3200,  status:"Historique comparable" },
+  { name:"Uncut Sheet Rare non-foil",           cost:16000, status:"Historique comparable" },
+  { name:"Elsa Pin",                            cost:0,     status:"Prix inconnu" },
+  { name:"DLC Hat",                             cost:0,     status:"Prix inconnu" }
+];
+
+/* =========================================================
+   FORMULES TICKETS
+========================================================= */
+function ticketsAtWins(f, wins) {
+  const w = Math.max(0, Math.min(wins, f.rounds));
+  return f.base
+       + f.rounds * (f.perRound || 0)
+       + w * (f.perWin || 0)
+       + (w === f.rounds ? (f.perfectBonus || 0) : 0);
+}
+
+/** Espérance de tickets pour un winrate p (rondes indépendantes). */
+function expectedTickets(f, p) {
+  return f.base
+       + f.rounds * (f.perRound || 0)
+       + f.rounds * p * (f.perWin || 0)
+       + (f.perfectBonus || 0) * Math.pow(p, f.rounds);
+}
+
+const productValueOf = (f, newPack, oldPack) => f.packs * newPack + f.oldPacks * oldPack;
+
+const packsLabel = (f) => {
+  if (!f.packs && !f.oldPacks) return "—";
+  const parts = [];
+  if (f.packs) parts.push(f.packs + " booster" + (f.packs > 1 ? "s" : ""));
+  if (f.oldPacks) parts.push(f.oldPacks + " anciens");
+  return parts.join(" + ");
+};
+
+/* =========================================================
+   ONGLETS
+========================================================= */
+const tabButtons = $$(".tab-btn");
+
+function activateTab(btn, focus = false) {
+  tabButtons.forEach((b) => {
+    const on = b === btn;
+    b.setAttribute("aria-selected", String(on));
+    b.tabIndex = on ? 0 : -1;
+    $(b.getAttribute("aria-controls")).classList.toggle("active", on);
+  });
+  if (focus) btn.focus();
+}
+
+tabButtons.forEach((btn, i) => {
+  btn.addEventListener("click", () => activateTab(btn));
+  btn.addEventListener("keydown", (e) => {
+    const map = { ArrowRight: 1, ArrowLeft: -1, Home: "first", End: "last" };
+    if (!(e.key in map)) return;
+    e.preventDefault();
+    const target = map[e.key] === "first" ? tabButtons[0]
+                 : map[e.key] === "last"  ? tabButtons[tabButtons.length - 1]
+                 : tabButtons[(i + map[e.key] + tabButtons.length) % tabButtons.length];
+    activateTab(target, true);
+  });
+});
+
+/* =========================================================
+   OPTIMISEUR
+   Programmation dynamique "weighted interval scheduling"
+   avec une dimension budget : O(n × budget), exact et instantané.
+   (L'ancienne récursion mémoïsée explosait en nombre d'états.)
+========================================================= */
+function optimizeSchedule(candidates, budgetEuros, bufferMin) {
+  const list = candidates.slice().sort((a, b) => a.endMin - b.endMin || a.startMin - b.startMin);
+  const n = list.length;
+  const totalPrice = list.reduce((s, e) => s + Math.ceil(e.f.price), 0);
+  const B = Math.max(0, Math.min(Math.floor(budgetEuros), totalPrice));
+
+  if (!n || B <= 0) return [];
+
+  // prev[i] : dernier index compatible avant l'event i (les fins sont triées)
+  const prev = new Int32Array(n);
+  for (let i = 0; i < n; i++) {
+    let j = i - 1;
+    while (j >= 0 && list[j].endMin + bufferMin > list[i].startMin) j--;
+    prev[i] = j;
+  }
+
+  const dp   = Array.from({ length: n + 1 }, () => new Float64Array(B + 1));
+  const take = Array.from({ length: n + 1 }, () => new Uint8Array(B + 1));
+
+  for (let i = 1; i <= n; i++) {
+    const e = list[i - 1];
+    const price = Math.ceil(e.f.price);
+    // à score égal, on préfère la solution la moins chère
+    const gain = e.score - price * 1e-6;
+    const base = dp[prev[i - 1] + 1];
+    for (let b = 0; b <= B; b++) {
+      let best = dp[i - 1][b], t = 0;
+      if (price <= b) {
+        const cand = gain + base[b - price];
+        if (cand > best + 1e-9) { best = cand; t = 1; }
+      }
+      dp[i][b] = best;
+      take[i][b] = t;
+    }
+  }
+
+  const chosen = [];
+  let i = n, b = B;
+  while (i > 0) {
+    if (take[i][b]) {
+      const e = list[i - 1];
+      chosen.push(e);
+      b -= Math.ceil(e.f.price);
+      i = prev[i - 1] + 1;
+    } else i--;
+  }
+  return chosen.sort((a, b2) => a.startMin - b2.startMin);
+}
+
+function calculateOptimizer() {
+  const budget     = num("optBudget");
+  const p          = Math.min(1, Math.max(0, num("optWinrate") / 100));
+  const newPack    = num("optNewPack");
+  const oldPack    = num("optOldPack");
+  const ticketEuro = num("optTicketValue") / 10;   // € par ticket
+  const badge      = num("optBadge");
+  const objective  = $("optObjective").value;
+  const buffer     = Math.max(0, num("optBuffer"));
+  const teamAllowed    = $("optTeam").value === "yes";
+  const saturdayBlocked = $("optSaturday").value === "main";
+  const sundayBlocked   = $("optSunday").value === "top16";
+  const lcq            = $("optFriday").value === "lcq";
+  const fridayFrom     = lcq ? timeToMinutes($("optLcqEnd").value || "13:00") : 0;
+
+  const candidates = [];
+  let skipped = 0;
+
+  for (const e of EVENTS) {
+    if (saturdayBlocked && e.day === "Samedi") { skipped++; continue; }
+    if (sundayBlocked   && e.day === "Dimanche") { skipped++; continue; }
+
+    const f = FORMATS[e.format];
+    if (f.team && !teamAllowed) { skipped++; continue; }
+    if (e.day === "Vendredi" && timeToMinutes(e.start) < fridayFrom) { skipped++; continue; }
+
+    const expected   = expectedTickets(f, p);
+    const products   = productValueOf(f, newPack, oldPack);
+    const prizeValue = expected * ticketEuro;
+    const gross      = products + prizeValue;
+    const net        = gross - f.price;
+    const score      = objective === "gross" ? gross : objective === "net" ? net : expected;
+
+    candidates.push({ ...e, f, expected, products, prizeValue, gross, net, score });
+  }
+
+  const chosen = optimizeSchedule(candidates, budget, buffer);
+
+  const agg = chosen.reduce((a, e) => ({
+    cost: a.cost + e.f.price,
+    tickets: a.tickets + e.expected,
+    products: a.products + e.products,
+    prizeValue: a.prizeValue + e.prizeValue,
+    net: a.net + e.net
+  }), { cost: 0, tickets: 0, products: 0, prizeValue: 0, net: 0 });
+
+  $("optResultCost").textContent      = fmtEur0(agg.cost);
+  $("optResultTickets").textContent   = fmtInt(agg.tickets);
+  $("optResultWithBadge").textContent = fmtInt(agg.tickets + badge);
+  $("optResultProducts").textContent  = fmtEur(agg.products);
+  $("optResultPrize").textContent     = fmtEur(agg.prizeValue);
+
+  const netEl = $("optResultNet");
+  netEl.textContent = fmtEur(agg.net);
+  netEl.className = "value " + (agg.net >= 0 ? "green" : "red");
+
+  $("optStatus").textContent =
+    chosen.length
+      ? `${chosen.length} event${chosen.length > 1 ? "s" : ""} retenu${chosen.length > 1 ? "s" : ""} sur ${candidates.length} éligibles`
+      : "Aucun event ne rentre dans les contraintes actuelles.";
+
+  /* --- planning du parcours --- */
+  let html = "";
+
+  if (lcq) {
+    html += `<p class="note small">Vendredi réservé au LCQ jusqu'à ${esc($("optLcqEnd").value || "13:00")} :
+      les events qui commencent avant sont exclus. Dès élimination, tu peux basculer sur les sides disponibles.</p>`;
+  }
+  if (!chosen.length) {
+    html += `<p class="note danger small">Aucun parcours possible : augmente le budget, réduis la marge
+      entre events ou débloque une journée.</p>`;
+  }
+
+  for (const day of DAYS) {
+    const dayEvents = chosen.filter((x) => x.day === day);
+    if (!dayEvents.length) continue;
+
+    const dayCost = dayEvents.reduce((s, e) => s + e.f.price, 0);
+    const dayTk   = dayEvents.reduce((s, e) => s + e.expected, 0);
+
+    html += `<h3 class="day-title">${day} ${DAY_DATE[day]}
+      <span class="small" style="float:right;font-weight:400">${fmtEur0(dayCost)} · ≈ ${fmtInt(dayTk)} tickets</span></h3>`;
+
+    for (const e of dayEvents) {
+      const localEnd = e.endMin - DAY_OFFSET[e.day];
+      html += `
+        <article class="ev pick">
+          <div class="ev-head">
+            <span class="ev-time">${esc(e.start)}</span>
+            <span class="ev-name">${esc(e.f.name)}</span>
+            <span class="ev-price gold">${fmtEur0(e.f.price)}</span>
+          </div>
+          <div class="ev-sub">${esc(e.f.structure)} · fin estimée ${minutesToTime(localEnd)}</div>
+          <div class="ev-chips">
+            <span class="chip green">≈ ${fmtInt(e.expected)} tickets</span>
+            ${e.products ? `<span class="chip blue">${fmtEur0(e.products)} de boosters</span>` : ""}
+            <span class="chip ${e.net >= 0 ? "gold" : ""}">net ${fmtEur(e.net)}</span>
+          </div>
+        </article>`;
+    }
+  }
+
+  $("optSchedule").innerHTML = html;
+
+  renderFormatTable(p, newPack, oldPack, ticketEuro);
+  renderEconomy();
+
+  if ($("pwSync").checked) {
+    $("pwExpected").value = Math.round(agg.tickets);
+  }
+  updatePrizeWall();
+}
+
+/* =========================================================
+   TABLEAU DE COMPARAISON DES FORMATS
+========================================================= */
+function renderFormatTable(p, newPack, oldPack, ticketEuro) {
+  const rows = Object.values(FORMATS).map((f) => {
+    const avg   = expectedTickets(f, p);
+    const packs = productValueOf(f, newPack, oldPack);
+    const net   = packs + avg * ticketEuro - f.price;
+
+    const detail = f.guaranteed
+      ? `${fmtInt(ticketsAtWins(f, 0))} garantis`
+      : Array.from({ length: f.rounds + 1 }, (_, w) =>
+          `${w} V : ${fmtInt(ticketsAtWins(f, w))}`).join(" · ");
+
+    return `<tr>
+      <td>${esc(f.name)}</td>
+      <td data-label="Prix">${fmtEur0(f.price)}</td>
+      <td data-label="Boosters">${esc(packsLabel(f))}</td>
+      <td data-label="Tickets selon victoires" style="white-space:normal">${detail}</td>
+      <td data-label="Tickets moyens" class="green"><b>${fmtInt(avg)}</b></td>
+      <td data-label="Tickets / €">${nf2.format(avg / f.price)}</td>
+      <td data-label="Valeur boosters" class="blue">${fmtEur(packs)}</td>
+      <td data-label="Valeur nette" class="${net >= 0 ? "green" : "red"}">${fmtEur(net)}</td>
+    </tr>`;
+  });
+  $("optFormatTable").innerHTML = rows.join("");
+}
+
+/* =========================================================
+   ÉCONOMIE DU TICKET
+========================================================= */
+function renderEconomy() {
+  const farmCost    = num("ecoFarmCost");
+  const farmTickets = Math.max(1, num("ecoFarmTickets", 1));
+  const prizeCost   = Math.max(1, num("ecoPrizeTickets", 1));
+  const packEuro    = num("optNewPack");
+
+  const farmPer10  = (farmCost / farmTickets) * 10;
+  const prizePer10 = (packEuro / prizeCost) * 10;
+
+  $("ecoFarmOut").textContent  = `${nf2.format(farmPer10)} € / 10 tickets`;
+  $("ecoPrizeOut").textContent = `${nf2.format(prizePer10)} € / 10 tickets`;
+
+  const ratio = prizePer10 > 0 ? farmPer10 / prizePer10 : 0;
+  $("ecoGapOut").textContent = ratio ? `× ${nf2.format(ratio)}` : "—";
+
+  const warn = $("ecoWarning");
+  if (ratio >= 1.5 || (ratio > 0 && ratio <= 1 / 1.5)) {
+    warn.style.display = "";
+    warn.innerHTML = `<b>Attention — les deux barèmes ne parlent pas de la même unité.</b>
+      Acheter des tickets via le Pack Rush revient à <b>${nf2.format(farmPer10)} €</b> les 10 tickets,
+      alors que les dépenser au Prize Wall les valorise à <b>${nf2.format(prizePer10)} €</b> les 10.
+      Un écart de ×${nf2.format(ratio)} signifie presque à coup sûr que l'échelle de tickets des
+      anciens challenges (10 / 20 par partie) et celle annoncée pour Paris 2026 (120 par entrée)
+      ne sont pas la même monnaie. Tant que Fanfinity n'a pas publié la grille officielle,
+      garde la référence Prize Wall pour la valeur nette et sers-toi de la référence Pack Rush
+      uniquement pour comparer des méthodes de farm entre elles.`;
+  } else {
+    warn.style.display = "none";
+  }
+}
+
+/* =========================================================
+   PRIZE WALL
+========================================================= */
+function initPrizeWall() {
+  $("pwTable").innerHTML = PRIZES.map((p, i) => {
+    const badgeClass = p.status.toLowerCase().includes("inconnu") ? "unknown"
+                     : p.status.toLowerCase().includes("officiel") ? "official" : "estimate";
+    return `<tr>
+      <td data-label="Je veux" style="text-align:left">
+        <input type="checkbox" data-pw="check" data-i="${i}" aria-label="Sélectionner ${esc(p.name)}">
+      </td>
+      <td data-label="Lot">${esc(p.name)}</td>
+      <td data-label="Prix tickets">
+        <input data-pw="cost" data-i="${i}" type="number" min="0" step="10" value="${p.cost}" inputmode="numeric" style="width:110px;display:inline-block">
+      </td>
+      <td data-label="Quantité">
+        <input data-pw="qty" data-i="${i}" type="number" min="1" step="1" value="1" inputmode="numeric" style="width:80px;display:inline-block">
+      </td>
+      <td data-label="Total" class="pw-row-total" data-line="${i}">0</td>
+      <td data-label="Statut"><span class="badge ${badgeClass}">${esc(p.status)}</span></td>
+    </tr>`;
+  }).join("");
+
+  // délégation d'événements : un seul listener pour toute la table
+  $("pwTable").addEventListener("input", updatePrizeWall);
+  $("pwTable").addEventListener("change", updatePrizeWall);
+}
+
+function updatePrizeWall() {
+  const owned     = num("pwOwned");
+  const expected  = num("pwExpected");
+  const available = owned + expected;
+
+  const checks = $$('[data-pw="check"]', $("pwTable"));
+  let total = 0;
+  const selected = [];
+
+  checks.forEach((chk) => {
+    const i    = Number(chk.dataset.i);
+    const cost = Math.max(0, Number($(`pwTable`).querySelector(`[data-pw="cost"][data-i="${i}"]`).value) || 0);
+    const qty  = Math.max(1, Number($(`pwTable`).querySelector(`[data-pw="qty"][data-i="${i}"]`).value) || 1);
+    const line = chk.checked ? cost * qty : 0;
+
+    $("pwTable").querySelector(`[data-line="${i}"]`).textContent = fmtInt(line) + " tickets";
+
+    if (chk.checked) {
+      total += line;
+      selected.push({ name: PRIZES[i].name, qty, cost, line });
+    }
+  });
+
+  $("pwAvailable").value = fmtInt(available) + " tickets";
+  $("pwTarget").value    = fmtInt(total) + " tickets";
+
+  const diff = available - total;
+  const diffEl = $("pwDifference");
+  diffEl.value = diff >= 0
+    ? "+" + fmtInt(diff) + " tickets restants"
+    : fmtInt(Math.abs(diff)) + " tickets manquants";
+  diffEl.style.color = diff >= 0 ? "var(--green)" : "var(--red)";
+
+  if (!selected.length) {
+    $("pwSelection").innerHTML = `<p class="small" style="margin:0">Aucun lot sélectionné.</p>`;
+    return;
+  }
+
+  const missing = Math.max(0, total - available);
+  $("pwSelection").innerHTML = `
+    ${selected.map((x) => `<div class="ev" style="border-left-color:var(--purple);margin:6px 0">
+        <div class="ev-head">
+          <span class="ev-name">${x.qty} × ${esc(x.name)}</span>
+          <span class="ev-price gold">${fmtInt(x.line)} tickets</span>
+        </div>
+      </div>`).join("")}
+    <hr class="sep">
+    <div class="kv">
+      <div class="kv-item"><div class="k">Objectif total</div><div class="v gold">${fmtInt(total)} tickets</div></div>
+      <div class="kv-item"><div class="k">Disponible</div><div class="v">${fmtInt(available)} tickets</div></div>
+      <div class="kv-item"><div class="k">${missing ? "Il te manque" : "Marge restante"}</div>
+        <div class="v ${missing ? "red" : "green"}">${fmtInt(missing || (available - total))} tickets</div></div>
+    </div>`;
+}
+
+/* =========================================================
+   PLANNING
+========================================================= */
+function renderPlanning() {
+  const filter = $("planningFilter").value;
+  const dayFilter = $("planningDay").value;
+  let html = "";
+  let shown = 0;
+
+  for (const day of DAYS) {
+    if (dayFilter !== "all" && dayFilter !== day) continue;
+
+    const list = EVENTS.filter((e) => e.day === day &&
+      (filter === "all" || FORMATS[e.format].category === filter));
+    if (!list.length) continue;
+
+    shown += list.length;
+    html += `<h3 class="day-title">${day} ${DAY_DATE[day]}
+      <span class="small" style="float:right;font-weight:400">${list.length} events</span></h3>`;
+
+    for (const e of list) {
+      const f = FORMATS[e.format];
+      const end = timeToMinutes(e.start) + f.duration;
+      const packs = packsLabel(f);
+
+      const chips = [`<span class="chip green">+${fmtInt(f.base)} entrée</span>`];
+      if (f.perRound) chips.push(`<span class="chip green">+${fmtInt(f.perRound)} / ronde jouée</span>`);
+      if (f.perWin)   chips.push(`<span class="chip blue">+${fmtInt(f.perWin)} / victoire</span>`);
+      if (f.perfectBonus) chips.push(`<span class="chip purple">+${fmtInt(f.perfectBonus)} perfect</span>`);
+      chips.push(`<span class="chip gold">${fmtInt(ticketsAtWins(f, f.rounds))} max</span>`);
+      if (f.guaranteed) chips.push(`<span class="chip">${fmtInt(ticketsAtWins(f, 0))} garantis</span>`);
+
+      html += `
+        <article class="ev">
+          <div class="ev-head">
+            <span class="ev-time">${esc(e.start)}</span>
+            <span class="ev-name">${esc(f.name)}</span>
+            <span class="ev-price">${fmtEur0(f.price)}</span>
+          </div>
+          <div class="ev-sub">${esc(f.structure)} · fin estimée ${minutesToTime(end)}${packs !== "—" ? " · 📦 " + esc(packs) : ""}</div>
+          <div class="ev-chips">${chips.join("")}</div>
+        </article>`;
+    }
+  }
+
+  $("planningContent").innerHTML = shown
+    ? html
+    : `<p class="note small">Aucun event ne correspond à ce filtre.</p>`;
+}
+
+function renderPlanningSummary() {
+  $("planningFormatSummary").innerHTML = Object.values(FORMATS).map((f) => `
+    <tr>
+      <td>${esc(f.name)}</td>
+      <td data-label="Prix">${fmtEur0(f.price)}</td>
+      <td data-label="Structure" style="white-space:normal">${esc(f.structure)}</td>
+      <td data-label="Produit">${esc(packsLabel(f))}</td>
+      <td data-label="Entrée" class="green">${fmtInt(f.base)}</td>
+      <td data-label="Par ronde jouée">${f.perRound ? "+" + fmtInt(f.perRound) : "—"}</td>
+      <td data-label="Par victoire" class="blue">${f.perWin ? "+" + fmtInt(f.perWin) : "—"}</td>
+      <td data-label="Bonus perfect" class="purple">${f.perfectBonus ? "+" + fmtInt(f.perfectBonus) : "—"}</td>
+      <td data-label="Maximum" class="gold"><b>${fmtInt(ticketsAtWins(f, f.rounds))}</b></td>
+    </tr>`).join("");
+}
+
+/* =========================================================
+   FARM ON-DEMAND
+========================================================= */
+const FARM_PRESETS = {
+  historic: { farmPrice: 15, farmPacks: 2, farmPackValue: 5, farmWinTickets: 30, farmLossTickets: 10, farmDuration: 30 },
+  paris:    { farmPrice: 25, farmPacks: 2, farmPackValue: 5, farmWinTickets: 120, farmLossTickets: 120, farmDuration: 30 }
+};
+
+let farmPresetLock = false;
+
+function applyFarmPreset() {
+  const preset = FARM_PRESETS[$("farmPreset").value];
+  if (!preset) return;
+  farmPresetLock = true;
+  Object.entries(preset).forEach(([id, v]) => { $(id).value = v; });
+  farmPresetLock = false;
+  calculateFarm();
+}
+
+function calculateFarm() {
+  const price       = num("farmPrice");
+  const packs       = num("farmPacks");
+  const packValue   = num("farmPackValue");
+  const winTickets  = num("farmWinTickets");
+  const lossTickets = num("farmLossTickets");
+  const duration    = Math.max(1, num("farmDuration", 1));
+  const players     = Math.max(1, Math.floor(num("farmPlayers", 1)));
+  const budget      = num("farmBudget");
+  const time        = num("farmTime");
+  const mode        = $("farmMode").value;
+  const winrate     = Math.min(1, Math.max(0, num("farmWinrate") / 100));
+
+  let runsLabel, cost = 0, totalPacks = 0, timeUsed = 0;
+  let minTickets = 0, avgTickets = 0, maxTickets = 0, explanation = "";
+
+  if (mode === "group") {
+    const pairs = Math.floor(players / 2);
+
+    if (pairs < 1) {
+      $("farmExplanation").innerHTML =
+        `<p class="note danger small">Il faut au moins <b>2 joueurs</b> pour le mode « on joue entre nous ».
+         Passe en mode individuel ou augmente la taille du groupe.</p>`;
+      ["farmRuns","farmTimeUsed","farmCost","farmTotalPacks","farmProductValue",
+       "farmMinTickets","farmAvgTickets","farmMaxTickets","farmRatio","farmTicketCost"]
+        .forEach((id) => { $(id).textContent = "—"; });
+      renderFarmComparison(0, 0, winrate);
+      return;
+    }
+
+    const costPerWave = price * 2 * pairs;   // 2 inscriptions par partie
+    const wavesByBudget = costPerWave > 0 ? Math.floor(budget / costPerWave) : Infinity;
+    const wavesByTime   = Math.floor(time / duration);
+    const waves = Math.max(0, Math.min(wavesByBudget, wavesByTime));
+    const games = waves * pairs;
+
+    cost       = waves * costPerWave;
+    totalPacks = games * 2 * packs;          // 2 joueurs par partie
+    timeUsed   = waves * duration;
+
+    const perGame = winTickets + lossTickets;
+    minTickets = avgTickets = maxTickets = perGame * games;
+
+    runsLabel = `${fmtInt(games)} partie${games > 1 ? "s" : ""}`;
+
+    const limiter = wavesByBudget <= wavesByTime ? "le budget" : "le temps disponible";
+    const idle = players % 2 === 1
+      ? ` Avec ${players} joueurs, un joueur reste sans adversaire à chaque vague : le calcul l'ignore.`
+      : "";
+
+    explanation = `<p class="note small">
+      <b>Mode groupe.</b> Chaque partie consomme <b>2 inscriptions</b> et produit
+      <b>${fmtInt(perGame)} tickets pour le groupe</b> (un gagnant + un perdant).
+      Facteur limitant ici : <b>${limiter}</b> (${fmtInt(waves)} vague${waves > 1 ? "s" : ""} de ${pairs} partie${pairs > 1 ? "s" : ""}).${idle}
+      Le partage réel des tickets dépend des règles de l'événement.</p>`;
+
+  } else {
+    const runsByBudget = price > 0 ? Math.floor(budget / price) : Infinity;
+    const runsByTime   = Math.floor(time / duration);
+    const runs = Math.max(0, Math.min(runsByBudget, runsByTime));
+
+    cost       = runs * price;
+    totalPacks = runs * packs;
+    timeUsed   = runs * duration;
+
+    minTickets = runs * Math.min(winTickets, lossTickets);
+    maxTickets = runs * Math.max(winTickets, lossTickets);
+    avgTickets = runs * (winrate * winTickets + (1 - winrate) * lossTickets);
+
+    runsLabel = `${fmtInt(runs)} run${runs > 1 ? "s" : ""}`;
+
+    const limiter = runsByBudget <= runsByTime ? "le budget" : "le temps disponible";
+    explanation = `<p class="note info small">
+      <b>Mode individuel.</b> Avec ${nfInt.format(winrate * 100)} % de winrate, le gain moyen est de
+      <b>${nf2.format(winrate * winTickets + (1 - winrate) * lossTickets)} tickets par run</b>.
+      Facteur limitant : <b>${limiter}</b>.</p>`;
+  }
+
+  const packsValue = totalPacks * packValue;
+  const ratio      = cost > 0 ? avgTickets / cost : 0;
+  const per10      = avgTickets > 0 ? (cost / avgTickets) * 10 : 0;
+
+  $("farmRuns").textContent         = runsLabel;
+  $("farmTimeUsed").textContent     = fmtInt(timeUsed) + " min";
+  $("farmCost").textContent         = fmtEur0(cost);
+  $("farmTotalPacks").textContent   = fmtInt(totalPacks);
+  $("farmProductValue").textContent = fmtEur(packsValue);
+  $("farmMinTickets").textContent   = fmtInt(minTickets);
+  $("farmAvgTickets").textContent   = fmtInt(avgTickets);
+  $("farmMaxTickets").textContent   = fmtInt(maxTickets);
+  $("farmRatio").textContent        = nf2.format(ratio);
+  $("farmTicketCost").textContent   = avgTickets > 0 ? nf2.format(per10) + " €" : "—";
+  $("farmExplanation").innerHTML    = explanation;
+
+  renderFarmComparison(
+    { cost, timeUsed, packs: totalPacks, tickets: avgTickets },
+    packValue,
+    winrate
+  );
+}
+
+function renderFarmComparison(farm, packValue, winrate) {
+  const f = farm && typeof farm === "object" ? farm : { cost: 0, timeUsed: 0, packs: 0, tickets: 0 };
+
+  const rows = [
+    { name: "On-Demand Farm calculé", cost: f.cost, time: f.timeUsed, packs: f.packs, tickets: f.tickets, highlight: true },
+    ...["core", "double", "sprintCore", "packrush"].map((k) => {
+      const fmt = FORMATS[k];
+      return {
+        name: fmt.name, cost: fmt.price, time: fmt.duration,
+        packs: fmt.packs, tickets: expectedTickets(fmt, winrate)
+      };
+    })
+  ];
+
+  // Les side events utilisent le barème 120 tickets. Si le farm tourne sur le barème
+  // historique (10 / 20), les colonnes « tickets » ne sont pas dans la même unité.
+  const sideBase = FORMATS.core.base;
+  const farmBase = num("farmWinTickets") + num("farmLossTickets");
+  const warnEl = $("farmScaleWarning");
+  const mixed = farmBase > 0 && (sideBase / (farmBase / 2) >= 3 || (farmBase / 2) / sideBase >= 3);
+  warnEl.style.display = mixed ? "" : "none";
+  if (mixed) {
+    warnEl.innerHTML = `<b>Barèmes différents — ne compare que les colonnes « Coût » et « Temps ».</b>
+      Le farm est réglé sur le barème historique (≈ ${fmtInt(farmBase / 2)} tickets par joueur et par partie)
+      alors que les side events ci-dessous utilisent le barème annoncé pour Paris 2026
+      (${fmtInt(sideBase)} tickets à l'entrée). Les colonnes « tickets » ne sont donc pas
+      dans la même unité tant que la grille officielle n'est pas publiée.`;
+  }
+
+  $("farmComparison").innerHTML = rows.map((x) => {
+    const ratio  = x.cost > 0 ? x.tickets / x.cost : 0;
+    const hourly = x.time > 0 ? x.tickets / (x.time / 60) : 0;
+    return `<tr${x.highlight ? ' style="background:#1b2540"' : ""}>
+      <td>${x.highlight ? "⭐ " : ""}${esc(x.name)}</td>
+      <td data-label="Coût">${fmtEur0(x.cost)}</td>
+      <td data-label="Temps">${fmtInt(x.time)} min</td>
+      <td data-label="Boosters">${fmtInt(x.packs)}</td>
+      <td data-label="Tickets moyens" class="green">${fmtInt(x.tickets)}</td>
+      <td data-label="Tickets / €">${nf2.format(ratio)}</td>
+      <td data-label="Tickets / heure" class="purple">${fmtInt(hourly)}</td>
+    </tr>`;
+  }).join("");
+}
+
+/* =========================================================
+   BRANCHEMENTS
+========================================================= */
+function bindLive(selector, handler) {
+  $$(selector).forEach((el) => {
+    el.addEventListener("change", handler);
+    if (el.tagName === "INPUT" && el.type !== "checkbox") el.addEventListener("input", handler);
+  });
+}
+
+initPrizeWall();
+renderPlanning();
+renderPlanningSummary();
+calculateOptimizer();
+applyFarmPreset();
+
+bindLive("#optimizer input, #optimizer select", calculateOptimizer);
+bindLive("#farm input, #farm select", () => {
+  if (farmPresetLock) return;
+  calculateFarm();
+});
+
+$("btnOptimize").addEventListener("click", calculateOptimizer);
+$("btnFarm").addEventListener("click", calculateFarm);
+$("farmPreset").addEventListener("change", applyFarmPreset);
+$("planningFilter").addEventListener("change", renderPlanning);
+$("planningDay").addEventListener("change", renderPlanning);
+
+// passer un champ du farm en manuel bascule le barème sur « personnalisé »
+Object.keys(FARM_PRESETS.historic).forEach((id) => {
+  $(id).addEventListener("input", () => {
+    if (!farmPresetLock) $("farmPreset").value = "custom";
+  });
+});
+
+["pwOwned", "pwExpected"].forEach((id) => $(id).addEventListener("input", updatePrizeWall));
+
+// « tickets badge » (onglet Optimiseur) et « tickets possédés » (Prize Wall) : même chiffre
+$("optBadge").addEventListener("input", () => {
+  $("pwOwned").value = $("optBadge").value;
+  updatePrizeWall();
+});
+$("pwOwned").addEventListener("input", () => {
+  $("optBadge").value = $("pwOwned").value;
+  $("optResultWithBadge").textContent =
+    fmtInt(num("pwExpected") + num("pwOwned"));
+});
+$("pwSync").addEventListener("change", calculateOptimizer);
+$("pwClear").addEventListener("click", () => {
+  $$('[data-pw="check"]').forEach((c) => { c.checked = false; });
+  updatePrizeWall();
+});
+
+["ecoFarmCost", "ecoFarmTickets", "ecoPrizeTickets"].forEach((id) =>
+  $(id).addEventListener("input", renderEconomy));
+
+$("ecoApplyFarm").addEventListener("click", () => {
+  const t = Math.max(1, num("ecoFarmTickets", 1));
+  $("optTicketValue").value = ((num("ecoFarmCost") / t) * 10).toFixed(2);
+  calculateOptimizer();
+});
+$("ecoApplyPrize").addEventListener("click", () => {
+  const t = Math.max(1, num("ecoPrizeTickets", 1));
+  $("optTicketValue").value = ((num("optNewPack") / t) * 10).toFixed(2);
+  calculateOptimizer();
+});
+</script>
+
+</body>
+</html>
